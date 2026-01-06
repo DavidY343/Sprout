@@ -2,6 +2,9 @@
 $DB_USER = "postgres"
 $DB_NAME = "finance_db"
 
+Write-Host "Borrando base de datos $DB_NAME..."
+psql -U $DB_USER -c "DROP DATABASE IF EXISTS $DB_NAME;"
+
 Write-Host "Creando base de datos $DB_NAME..."
 psql -U $DB_USER -c "CREATE DATABASE $DB_NAME;"
 

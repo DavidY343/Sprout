@@ -25,20 +25,10 @@ CREATE TABLE accounts (
         FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
-CREATE TABLE categories (
-    category_id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    parent_category_id BIGINT,
-    is_active BOOLEAN DEFAULT TRUE,
-
-    CONSTRAINT fk_parent_category
-        FOREIGN KEY (parent_category_id) REFERENCES categories(category_id)
-);
-
 CREATE TABLE transactions (
     transaction_id BIGSERIAL PRIMARY KEY,
     account_id BIGINT NOT NULL,
-    category_id BIGINT,
+    category VARCHAR(100),
     date TIMESTAMPTZ NOT NULL,
     amount NUMERIC(15,6) NOT NULL,
     type VARCHAR(10) NOT NULL,
@@ -49,54 +39,20 @@ CREATE TABLE transactions (
     CONSTRAINT fk_transaction_account
         FOREIGN KEY (account_id) REFERENCES accounts(account_id),
 
-    CONSTRAINT fk_transaction_category
-        FOREIGN KEY (category_id) REFERENCES categories(category_id),
-
     CONSTRAINT chk_transaction_type
         CHECK (type IN ('income', 'expense'))
 );
 
-CREATE TABLE asset_types (
-    asset_type_id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE
-);
 
 CREATE TABLE assets (
     asset_id BIGSERIAL PRIMARY KEY,
     ticker VARCHAR(50),
+    isin VARCHAR(12),
     name VARCHAR(255) NOT NULL,
-    asset_type_id BIGINT NOT NULL,
     currency CHAR(3) NOT NULL,
-    is_active BOOLEAN DEFAULT TRUE,
-
-    CONSTRAINT fk_asset_type
-        FOREIGN KEY (asset_type_id)
-        REFERENCES asset_types(asset_type_id)
-);
-
-
-CREATE TABLE themes (
-    theme_id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    parent_theme_id BIGINT,
-    is_active BOOLEAN DEFAULT TRUE,
-
-    CONSTRAINT fk_parent_theme
-        FOREIGN KEY (parent_theme_id)
-        REFERENCES themes(theme_id)
-);
-
-CREATE TABLE asset_theme (
-    asset_id BIGINT NOT NULL,
-    theme_id BIGINT NOT NULL,
-
-    PRIMARY KEY (asset_id, theme_id),
-
-    CONSTRAINT fk_asset_theme_asset
-        FOREIGN KEY (asset_id) REFERENCES assets(asset_id),
-
-    CONSTRAINT fk_asset_theme_theme
-        FOREIGN KEY (theme_id) REFERENCES themes(theme_id)
+    themes VARCHAR(255),
+    type VARCHAR(30) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE operations (
