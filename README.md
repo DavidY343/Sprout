@@ -9,9 +9,11 @@ El objetivo del proyecto es diseñar una aplicación full-stack que permita:
 - Visualizar la asignación de activos
 - Evaluar la evolución temporal de la cartera
 
+En resumen, construir una aplicación end‑to‑end realista, moderna y gratuita, aplicando buenas prácticas de ingeniería de software.
 ---
 
 ## 🧱 Arquitectura general
+
 
 - **Backend**: FastAPI + PostgreSQL
 - **Base de datos**: Modelo relacional propio, orientado a análisis financiero
@@ -20,6 +22,7 @@ El objetivo del proyecto es diseñar una aplicación full-stack que permita:
 - **Despliegue**: Docker / CI-CD (pendiente)
 
 ---
+
 
 ## 📊 Modelo de datos
 
@@ -32,15 +35,28 @@ El modelo contempla las siguientes entidades principales:
 - **operations**: operaciones de compra/venta de activos
 - **price_history**: histórico de precios de mercado por activo
 
-El diseño separa explícitamente:
-- Operaciones del usuario
-- Evolución del mercado
+Decisiones clave
 
-permitiendo cálculos correctos de rendimiento temporal.
+type y theme están directamente en assets para simplicidad
+
+price_history se desacopla de operations (valor de mercado ≠ precio de compra)
+
+Todo está centrado en user_id
 
 ---
 
 ## ⚙️ Backend (estado actual)
+
+### Estructura
+
+backend/
+├── app/
+│ ├── api/ # Routers (endpoints)
+│ ├── models/ # ORM models
+│ ├── schemas/ # Pydantic schemas
+│ ├── services/ # Lógica de negocio / queries
+│ └── core/ # Configuración y DB
+└── main.py
 
 ### Funcionalidades implementadas
 
@@ -67,14 +83,31 @@ permitiendo cálculos correctos de rendimiento temporal.
 
 ---
 
-## 🖥️ Frontend (pendiente)
+## 🖥️ Frontend
 
-El frontend se desarrollará en React y consumirá la API existente para:
 
-- Visualización de balances
-- Gráficas circulares de asignación
-- Gráficas temporales de evolución
-- Interfaz de análisis de cartera
+### Estructura
+
+frontend/
+├── src/
+│ ├── components/
+│ ├── context/ # ThemeContext
+│ ├── pages/
+│ ├── services/ # API calls
+│ └── App.tsx
+
+### Funcionalidades implementadas
+
+- [x] Tema oscuro/claro
+- [x] Layout base tipo dashboard
+
+### Funcionalidades pendientes
+
+- [ ] Histórico temporal de rendimiento de cartera
+- [ ] Registro y consulta de trade logs
+- [ ] Automatización de `price_history` mediante API de mercado (TradingView, Alpha Vantage, Yahoo Finance, etc.)
+- [ ] Autenticación (JWT)
+- [ ] Control de usuarios (endpoints `/me`)
 
 ---
 
@@ -107,3 +140,4 @@ priorizando:
 - diseño correcto del modelo
 - claridad arquitectónica
 - decisiones justificables
+
