@@ -3,31 +3,27 @@ import KPICard from '../components/KPICard'
 import { getAccountsWithBalance } from '../services/accountService'
 import { AccountWithBalance } from '../types/account'
 import { PieChart, TrendingUp, Wallet } from 'lucide-react'
-
-
+import AccountsDonut from '../components/donuts/AccountsDonut'
+import AccountSelector from '../components/selectors/AccountSelector'
+import AssetsDonut from '../components/donuts/AssetsDonut'
+import GroupBySelector from '../components/selectors/GroupSelector'
 
 export default function PortfolioPage() {
+
   const [accounts, setAccounts] = useState<AccountWithBalance[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [selectedAccountId, setSelectedAccountId] = useState<number | 'all'>('all')
+  const [selectedAssetAccountId, setSelectedAssetAccountId] = useState<number | 'all'>('all')
+  const [groupBy, setGroupBy] = useState<'type' | 'theme' | 'asset'>('type')
 
   const userId = 1 // temporal
 
   useEffect(() => {
-    getAccountsWithBalance(userId)
-      .then(setAccounts)
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false))
+    getAccountsWithBalance(userId).then(data => {setAccounts(data)})
+    .catch(error => {
+      console.error('Error al obtener cuentas:', error)
+      setAccounts([])
+    })
   }, [])
-
-  if (loading) {
-    return <p>Cargando datos...</p>
-  }
-
-  if (error) {
-    return <p className="text-red-500">Error: {error}</p>
-  }
-
   const totalPortfolio = accounts.reduce(
     (sum, acc) => sum + acc.total_value,
     0
@@ -113,17 +109,62 @@ export default function PortfolioPage() {
       </div>
       {/* Donuts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="h-64 rounded-xl bg-[#11162A]/50 border border-white/10 flex items-center justify-center">
-          Donut izquierda (allocation)
+
+        {/* Donut izquierda */}
+        <div className="rounded-xl bg-[#11162A] border border-white/10 p-4">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-white">
+              Distribución de cuentas
+            </h2>
+            <div className="flex items-center">
+              <AccountSelector
+                accounts={accounts}
+                selected={selectedAccountId}
+                onChange={setSelectedAccountId}
+              />
+            </div>
+          </div>
+          <div className="flex justify-center items-center">
+            <AccountsDonut
+              accounts={accounts}
+              userId={userId}
+              selectedAccountId={selectedAccountId}
+            />
+          </div>
         </div>
-        <div className="h-64 rounded-xl bg-[#11162A]/50 border border-white/10 flex items-center justify-center">
-          Donut derecha (allocation)
+
+        {/* Donut derecha */}
+        <div className="rounded-xl bg-[#11162A] border border-white/10 p-4">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-white">
+              Distribución de activos
+            </h2>
+            <div className="flex items-center gap-4">
+              <AccountSelector
+                accounts={accounts}
+                selected={selectedAssetAccountId}
+                onChange={setSelectedAssetAccountId}
+              />
+              
+              <GroupBySelector
+                value={groupBy}
+                onChange={setGroupBy}
+              />
+            </div>
+          </div>
+          <div className="flex justify-center items-center">
+            <AssetsDonut
+              userId={userId}
+              selectedAccountId={selectedAssetAccountId}
+              groupBy={groupBy}
+            />
+          </div>
         </div>
       </div>
 
 
       {/* Line chart */}
-      <div className="h-80 rounded-xl bg-[#11162A] border border-white/10 flex items-center justify-center">
+      <div className="h-80 rounded-xl bg-[#18181a] border border-white/10 flex items-center justify-center">
         Gráfico de rentabilidad temporal
       </div>
 
