@@ -54,3 +54,4 @@ dist-ssr
 
 scripts/
 temp*.txt
+.env
