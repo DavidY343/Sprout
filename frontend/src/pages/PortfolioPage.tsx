@@ -15,15 +15,24 @@ export default function PortfolioPage() {
   const [selectedAssetAccountId, setSelectedAssetAccountId] = useState<number | 'all'>('all')
   const [groupBy, setGroupBy] = useState<'type' | 'theme' | 'asset'>('type')
 
-  const userId = 1 // temporal
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getAccountsWithBalance(userId).then(data => {setAccounts(data)})
-    .catch(error => {
+      loadAccounts()
+  }, []);
+
+  const loadAccounts = async () => {
+    try {
+      setLoading(true)
+      const data = await getAccountsWithBalance()
+      setAccounts(data)
+    } catch (error) {
       console.error('Error al obtener cuentas:', error)
       setAccounts([])
-    })
-  }, [])
+    } finally {
+      setLoading(false)
+    }
+  }
   const totalPortfolio = accounts.reduce(
     (sum, acc) => sum + acc.total_value,
     0
@@ -127,7 +136,6 @@ export default function PortfolioPage() {
           <div className="flex justify-center items-center">
             <AccountsDonut
               accounts={accounts}
-              userId={userId}
               selectedAccountId={selectedAccountId}
             />
           </div>
@@ -154,7 +162,6 @@ export default function PortfolioPage() {
           </div>
           <div className="flex justify-center items-center">
             <AssetsDonut
-              userId={userId}
               selectedAccountId={selectedAssetAccountId}
               groupBy={groupBy}
             />
