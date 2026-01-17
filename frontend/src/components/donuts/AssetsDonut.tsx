@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
-import { AssetAllocation } from '../../types/allocation'
+import { AssetAllocation } from '../../types/asset'
 import { getAccountAssetAllocation, getGlobalAssetAllocation } from '../../services/assetService'
 import DonutTooltip from './DonutToolTip'
 
@@ -11,10 +11,7 @@ interface Props {
   groupBy: 'type' | 'theme' | 'asset'
 }
 
-export default function AssetsDonut({
-  selectedAccountId,
-  groupBy
-}: Props) {
+export default function AssetsDonut({selectedAccountId,groupBy}: Props) {
   const [data, setData] = useState<AssetAllocation[]>([])
   const [loading, setLoading] = useState(false)
 
