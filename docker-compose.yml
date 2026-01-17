@@ -41,5 +41,16 @@ services:
     depends_on:
       - backend
 
+  price-updater:
+    build: ./worker
+    container_name: fintech-worker
+    env_file:
+      - .env
+    depends_on:
+      - db
+    # Si quieres que el script corra una vez y se apague:
+    # command: python main.py
+    # Si quieres que esté siempre vivo y gestione su propio tiempo:
+    restart: unless-stopped
 volumes:
   postgres_data:

@@ -20,10 +20,18 @@ VALUES
 INSERT INTO assets (ticker, name, currency, theme, type)
 VALUES
 ('AAPL', 'Apple Inc.','EUR', 'Global Equity', 'stock'),
-('VWCE', 'Vanguard FTSE All-World ETF', 'EUR', 'Global Equity', 'etf'),
+('VWCE.DE', 'Vanguard FTSE All-World ETF', 'EUR', 'Global Equity', 'etf'),
 (NULL, 'Fondo Indexado Global', 'EUR', 'Global Equity', 'fund'),
-('BTC', 'Bitcoin', 'EUR', 'Tech', 'crypto'),
-('ETH', 'Ethereum', 'EUR', 'Tech', 'crypto');
+('BTC-EUR', 'Bitcoin', 'EUR', 'Tech', 'crypto'),
+('ETH-EUR', 'Ethereum', 'EUR', 'Tech', 'crypto');
+
+INSERT INTO assets (isin, name, currency,theme, type)
+VALUES
+('LU0625737910', 'Pictet-China Index P EUR', 'EUR', 'Emerging Markets', 'fund'),
+('LU1372006947', 'Cobas Selection Fund Class P Acc EUR', 'EUR', 'Active Managements', 'fund'),
+('IE000ZYRH0Q7', 'iShares Developed World Index (IE) Acc EUR clase S', 'EUR', 'Global Equity', 'fund'),
+('IE000QAZP7L2', 'iShares Emerging Markets Index Fund (IE) Acc EUR clase S', 'EUR', 'Emerging Markets', 'fund');
+
 
 INSERT INTO operations (asset_id, account_id, date, quantity, price, operation_type)
 VALUES
