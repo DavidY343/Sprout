@@ -20,3 +20,23 @@ export interface AssetTableRow {
   invested_value: number
   performance: number
 }
+
+export interface Asset {
+    asset_id: number;
+    ticker?: string;
+    isin?: string;
+    name: string;
+    currency: string;
+    theme?: string;
+    type: string;
+    is_active: boolean;
+}
+
+export interface AssetCreate {
+    ticker?: string;
+    isin?: string;
+    name: string;
+    currency: string;
+    theme?: string;
+    type: string;
+}
