@@ -151,3 +151,7 @@ priorizando:
 - Posteriormente, en la Login page, se deberia implementar un sistema de envío de emails para verificación de cuenta y recuperación de contraseña y el recordatorio de sesión.
 
 - Tener un backup automatico de la base de datos
+
+- Tengo querys a mano y otras con ORM. Deberia homogeneizarse todo a ORM para facilitar el mantenimiento y legibilidad del código.
+
+- Revision entera de la UI/UX del frontend para mejorar la experiencia de usuario.

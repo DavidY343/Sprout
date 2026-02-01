@@ -37,7 +37,7 @@ def try_get_data(identifier):
     return None, None, None
 
 def update_prices():
-    print(f"🚀 Iniciando actualización: {datetime.now()}")
+    print(f"Iniciando actualización: {datetime.now()}")
     conn = None
     try:
         conn = connect_db()
@@ -45,7 +45,7 @@ def update_prices():
         
         cur.execute("SELECT asset_id, ticker, isin FROM assets WHERE is_active = TRUE")
         assets = cur.fetchall()
-
+        problem_assets = []
         for asset_id, ticker, isin in assets:
             identifier = isin if isin else ticker
             if not identifier: continue
@@ -53,7 +53,8 @@ def update_prices():
             print(f"Buscando: {identifier}...", end=" ")
             
             price, date, final_ticker = try_get_data(identifier)
-            
+            if not price:
+                problem_assets.append((ticker, isin, os.name))
             if price:
                 try:
                     cur.execute("""
@@ -70,13 +71,17 @@ def update_prices():
             else:
                 print(f"No encontrado.")
 
+        if problem_assets:
+            print("⚠️ ACTIVOS NO ENCONTRADOS:")
+            for ticker, isin, name in problem_assets:
+                print(f"   • {ticker or isin} - {name}")
         cur.close()
     except Exception as e:
         print(f"Error de conexión: {e}")
     finally:
         if conn:
             conn.close()
-    print(f"🏁 Tarea finalizada: {datetime.now()}\n")
+    print(f"Tarea finalizada: {datetime.now()}\n")
 
 # --- PROGRAMACIÓN ---
 # 1. Ejecución inmediata al iniciar

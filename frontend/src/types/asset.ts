@@ -11,12 +11,32 @@ export interface AssetTableRow {
   asset_id: number
   name: string
   ticker: string
-  isin?: string  // Nueva propiedad opcional
+  isin?: string
   type: string
-  theme: string  // Nueva propiedad
+  theme: string
   quantity: number
   current_price: number
   total_value: number
-  invested_value: number  // Nueva propiedad
+  invested_value: number
   performance: number
+}
+
+export interface Asset {
+    asset_id: number;
+    ticker?: string;
+    isin?: string;
+    name: string;
+    currency: string;
+    theme?: string;
+    type: string;
+    is_active: boolean;
+}
+
+export interface AssetCreate {
+    ticker?: string;
+    isin?: string;
+    name: string;
+    currency: string;
+    theme?: string;
+    type: string;
 }

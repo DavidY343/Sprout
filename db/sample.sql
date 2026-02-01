@@ -40,7 +40,8 @@ VALUES
 (3, 2, NOW() - INTERVAL '15 days', 20, 50, 'buy'),
 (4, 3, NOW() - INTERVAL '7 days', 0.05, 45000, 'buy'),
 (5, 3, NOW() - INTERVAL '5 days', 0.5, 3000, 'buy'),
-(5, 3, NOW() - INTERVAL '1 day', 0.1, 3200, 'sell');
+(5, 3, NOW() - INTERVAL '1 day', 0.1, 3200, 'sell'),
+(6, 3, NOW() - INTERVAL '1 day', 0.1, 180, 'buy');
 
 INSERT INTO price_history (asset_id, date, price)
 VALUES

@@ -61,7 +61,7 @@ export default function TopBar({ activeTab, setActiveTab }: Props) {
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-500/30 text-red-300 hover:bg-red-500/10 transition text-sm font-medium"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-500/30 text-red-300 hover:bg-red-500/10 transition text-sm font-medium cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
           Cerrar sesión
