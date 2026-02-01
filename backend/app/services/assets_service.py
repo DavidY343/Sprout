@@ -1,4 +1,40 @@
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from app.models import Asset, Operation, Account
+from app.schemas.asset import AssetCreate
+
+async def create_asset(db: AsyncSession, asset_data: AssetCreate) -> Asset:
+    # Verificar si ya existe
+    stmt = select(Asset).where(
+        (Asset.name == asset_data.name) | 
+        (Asset.ticker == asset_data.ticker if asset_data.ticker else False) |
+        (Asset.isin == asset_data.isin if asset_data.isin else False)
+    )
+    result = await db.execute(stmt)
+    existing = result.scalar_one_or_none()
+    
+    if existing:
+        return existing
+
+    db_asset = Asset(**asset_data.model_dump())
+    db.add(db_asset)
+    await db.commit()
+    await db.refresh(db_asset)
+    return db_asset
+
+async def get_user_assets(db: AsyncSession, user_id: int):
+    # Buscamos activos que tengan operaciones en cuentas del usuario
+    stmt = (
+        select(Asset)
+        .join(Operation, Asset.asset_id == Operation.asset_id)
+        .join(Account, Operation.account_id == Account.account_id)
+        .where(Account.user_id == user_id)
+        .distinct()
+    )
+    
+    result = await db.execute(stmt)
+    return result.scalars().all()
 
 async def get_asset_allocation(db, account_id: int, user_id: int, group_by: str):
     """
