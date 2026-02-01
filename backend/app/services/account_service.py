@@ -1,6 +1,42 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import date
+from sqlalchemy import select
+from app.models import Account
+from app.schemas.account import AccountCreate
+
+async def create_account(db: AsyncSession, account_data: AccountCreate, user_id: int) -> Account:
+    # Verificar si ya existe para este usuario
+    stmt = select(Account).where(
+        (Account.user_id == user_id) & 
+        (Account.name == account_data.name)
+    )
+    result = await db.execute(stmt)
+    existing = result.scalar_one_or_none()
+    
+    if existing:
+        return existing
+    
+    # Crear nuevo
+    db_account = Account(**account_data.model_dump(), user_id=user_id)
+    db.add(db_account)
+    await db.commit()
+    await db.refresh(db_account)
+    return db_account
+
+async def get_user_accounts(db: AsyncSession, user_id: int):
+    """
+    Simplemente devuelve todos los objetos Account del usuario.
+    """
+    stmt = (
+        select(Account)
+        .where(Account.user_id == user_id)
+        .where(Account.is_active == True)
+        .order_by(Account.name)
+    )
+    
+    result = await db.execute(stmt)
+    return result.scalars().all()
 
 async def get_accounts_with_balance(db, user_id: int):
     """
