@@ -4,6 +4,7 @@ import PortfolioPage from './pages/PortfolioPage'
 import TradesPage from './pages/TradesPage'
 import RebalancePage from './pages/RebalancePage'
 import LoginPage from './pages/LoginPage'
+import TransactionPage from './pages/TransactionPage'
 import { isAuthenticated } from './services/authService'
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
         {activeTab === 'portfolio' && <PortfolioPage />}
         {activeTab === 'trades' && <TradesPage />}
         {activeTab === 'rebalance' && <RebalancePage />}
+        {activeTab === 'transactions' && <TransactionPage />}
       </main>
     </div>
   )
