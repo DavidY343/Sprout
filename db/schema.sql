@@ -75,6 +75,27 @@ CREATE TABLE operations (
         CHECK (operation_type IN ('buy', 'sell'))
 );
 
+CREATE TABLE rebalance_settings (
+    rebalance_id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    asset_id BIGINT NOT NULL,
+    target_percentage NUMERIC(5,2) DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+    CONSTRAINT fk_rebalance_user
+        FOREIGN KEY (user_id) REFERENCES users(user_id),
+    
+    CONSTRAINT fk_rebalance_asset
+        FOREIGN KEY (asset_id) REFERENCES assets(asset_id),
+
+    CONSTRAINT uq_user_rebalance_asset UNIQUE (user_id, asset_id),
+    
+    CONSTRAINT chk_positive_percentage CHECK (target_percentage >= 0)
+);
+
+CREATE INDEX idx_rebalance_user_id ON rebalance_settings(user_id);
+
 CREATE TABLE price_history (
     price_id BIGSERIAL PRIMARY KEY,
     asset_id BIGINT NOT NULL,
