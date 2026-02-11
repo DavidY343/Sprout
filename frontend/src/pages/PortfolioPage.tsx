@@ -174,7 +174,11 @@ export default function PortfolioPage() {
 
       {/* Line chart */}
       <div className="h-80 rounded-xl bg-[#11162A] border border-white/10 flex items-center justify-center">
-        Gráfico de rentabilidad temporal
+          <div className="flex flex-col items-center justify-center min-h-[80vh] text-center">
+          <div className="text-7xl mb-8">🚧</div>
+          <h1 className="text-3xl font-bold mb-4">Grafico de rentabilidad</h1>
+          <p className="text-xl text-gray-400">Próximamente disponible</p>
+    </div>
       </div>
 
       {/* Tabla */}
