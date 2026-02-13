@@ -170,8 +170,6 @@ export default function PortfolioPage() {
           </div>
         </div>
       </div>
-
-
       {/* Line chart */}
       <div className="h-80 rounded-xl bg-[#11162A] border border-white/10 flex items-center justify-center">
           <div className="flex flex-col items-center justify-center min-h-[80vh] text-center">
@@ -183,6 +181,12 @@ export default function PortfolioPage() {
 
       {/* Tabla */}
       <div className="rounded-xl bg-[#11162A] border border-white/10 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-semibold text-white">Listado de Activos</h2>
+            <p className="text-sm text-gray-400">Detalle individual, pesos de cartera y beneficio acumulado</p>
+          </div>
+        </div>
         <AssetsTable />
       </div>
 
