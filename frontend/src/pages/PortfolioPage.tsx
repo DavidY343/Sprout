@@ -8,7 +8,7 @@ import AccountSelector from '../components/selectors/AccountSelector'
 import AssetsDonut from '../components/donuts/AssetsDonut'
 import GroupBySelector from '../components/selectors/GroupSelector'
 import AssetsTable from '../components/tables/AssetsTable'
-
+import AssetsTreemap from '../components/AssetTreemap'
 
 export default function PortfolioPage() {
 
@@ -170,6 +170,18 @@ export default function PortfolioPage() {
           </div>
         </div>
       </div>
+
+      {/* Dashboard de Activos (Treemap) */}
+      <div className="rounded-xl bg-[#11162A] border border-white/10 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-semibold text-white">Mapa de Activos</h2>
+            <p className="text-sm text-gray-400">Tamaño por valor total | Color por rendimiento</p>
+          </div>
+        </div>
+          <AssetsTreemap />
+      </div>
+
       {/* Line chart */}
       <div className="h-80 rounded-xl bg-[#11162A] border border-white/10 flex items-center justify-center">
           <div className="flex flex-col items-center justify-center min-h-[80vh] text-center">

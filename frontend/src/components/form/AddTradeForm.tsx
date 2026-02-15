@@ -307,6 +307,7 @@ export default function AddTradeForm({ onSuccess, onCancel }: AddTradeFormProps)
             <input
               type="number"
               min="0"
+              step="any"
               value={formData.quantity}
               onChange={(e) => setFormData(prev => ({ ...prev, quantity: parseFloat(e.target.value) }))}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500

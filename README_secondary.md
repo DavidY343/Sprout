@@ -155,3 +155,5 @@ priorizando:
 - Tengo querys a mano y otras con ORM. Deberia homogeneizarse todo a ORM para facilitar el mantenimiento y legibilidad del código.
 
 - Revision entera de la UI/UX del frontend para mejorar la experiencia de usuario.
+
+- En el treemap ahora mismo coge rendimientos globales. Deben ser los rendmientos del dia
