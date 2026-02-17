@@ -9,6 +9,7 @@ import AssetsDonut from '../components/donuts/AssetsDonut'
 import GroupBySelector from '../components/selectors/GroupSelector'
 import AssetsTable from '../components/tables/AssetsTable'
 import AssetsTreemap from '../components/AssetTreemap'
+import PortfolioHistoryChart from '../components/PortfolioHistoryChart'
 
 export default function PortfolioPage() {
 
@@ -183,13 +184,17 @@ export default function PortfolioPage() {
       </div>
 
       {/* Line chart */}
-      <div className="h-80 rounded-xl bg-[#11162A] border border-white/10 flex items-center justify-center">
-          <div className="flex flex-col items-center justify-center min-h-[80vh] text-center">
-          <div className="text-7xl mb-8">🚧</div>
-          <h1 className="text-3xl font-bold mb-4">Grafico de rentabilidad</h1>
-          <p className="text-xl text-gray-400">Próximamente disponible</p>
-    </div>
+    <div className="rounded-xl bg-[#11162A] border border-white/10 p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-semibold text-white">Evolución del Patrimonio</h2>
+          <p className="text-sm text-gray-400">Valor total de la cartera en el tiempo</p>
+        </div>
       </div>
+      <div className="h-80 w-full">
+        <PortfolioHistoryChart />
+      </div>
+    </div>
 
       {/* Tabla */}
       <div className="rounded-xl bg-[#11162A] border border-white/10 p-6">
