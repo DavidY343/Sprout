@@ -53,6 +53,9 @@ CREATE TABLE assets (
     theme VARCHAR(255),
     type VARCHAR(30) NOT NULL,
     is_active BOOLEAN DEFAULT TRUE
+
+    CONSTRAINT chk_asset_type 
+        CHECK (type IN ('stock', 'crypto', 'fund', 'etf', 'cash', 'bond'))
 );
 
 CREATE TABLE operations (
@@ -114,4 +117,4 @@ CREATE INDEX idx_transactions_date ON transactions(date);
 CREATE INDEX idx_operations_asset ON operations(asset_id);
 CREATE INDEX idx_operations_account ON operations(account_id);
 
-CREATE INDEX idx_price_asset_date ON price_history(asset_id, date);
+CREATE INDEX idx_price_asset_date ON price_history(asset_id, date DESC);
