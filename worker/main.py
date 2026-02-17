@@ -36,6 +36,24 @@ def try_get_data(identifier):
             continue
     return None, None, None
 
+
+def should_update(asset_type):
+    now = datetime.now()
+    is_weekend = now.weekday() >= 5
+    
+    if asset_type == 'crypto':
+        # Cripto siempre abre
+        return True  
+    
+    if asset_type == 'stock':
+        # Si es fin de semana, no perdamos tiempo con acciones
+        return not is_weekend 
+        
+    if asset_type == 'fund' or asset_type == 'bond':
+        # Los fondos solo actualizan una vez al día
+        return now.hour == 23 and now.minute < 15
+
+    return True
 def update_prices():
     print(f"Iniciando actualización: {datetime.now()}")
     conn = None
@@ -43,12 +61,17 @@ def update_prices():
         conn = connect_db()
         cur = conn.cursor()
         
-        cur.execute("SELECT asset_id, ticker, isin FROM assets WHERE is_active = TRUE")
+        cur.execute("SELECT asset_id, ticker, isin, type FROM assets WHERE is_active = TRUE")
         assets = cur.fetchall()
         problem_assets = []
-        for asset_id, ticker, isin in assets:
+        for asset_id, ticker, isin, asset_type in assets:
             identifier = isin if isin else ticker
-            if not identifier: continue
+            if not identifier:
+                continue
+            if not should_update(asset_type):
+                print(f"{identifier} skipping (type: {asset_type})")
+                continue
+            
 
             print(f"Buscando: {identifier}...", end=" ")
             
@@ -83,15 +106,42 @@ def update_prices():
             conn.close()
     print(f"Tarea finalizada: {datetime.now()}\n")
 
+
+def consolidate_history():
+    """
+    Borra los puntos de alta frecuencia de días anteriores y deja solo 
+    el último precio de cada día.
+    """
+    conn = connect_db()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            DELETE FROM price_history
+            WHERE price_id NOT IN (
+                SELECT DISTINCT ON (asset_id, date::date) price_id
+                FROM price_history
+                ORDER BY asset_id, date::date, date DESC
+            )
+            AND date::date < CURRENT_DATE;
+        """)
+        conn.commit()
+        print("Consolidación completada: Historial optimizado.")
+    except Exception as e:
+        conn.rollback()
+        print(f"Error consolidando: {e}")
+    finally:
+        cur.close()
+        conn.close()
+
+
+
+
 # --- PROGRAMACIÓN ---
-# 1. Ejecución inmediata al iniciar
-update_prices()
+# 1. Cada 15 minutos: Actualización de alta frecuencia
+schedule.every(15).minutes.do(update_prices)
 
-# 2. Ejecución nocturna (23:30)
-schedule.every().day.at("23:30").do(update_prices)
-
-# 3. Ejecución matutina (08:00)
-schedule.every().day.at("08:00").do(update_prices)
+# 2. Cada noche: Limpieza de la base de datos
+schedule.every().day.at("00:01").do(consolidate_history)
 
 if __name__ == "__main__":
     while True:
