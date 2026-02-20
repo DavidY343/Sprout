@@ -164,7 +164,7 @@ export default function AddTradeForm({ onSuccess, onCancel }: AddTradeFormProps)
                   ...prev, 
                   asset_id: parseInt(e.target.value) 
                 }))}
-                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 max-w-[350px] truncate"
                 disabled={assets.length === 0}
               >
                 {assets.length === 0 ? (
@@ -203,7 +203,7 @@ export default function AddTradeForm({ onSuccess, onCancel }: AddTradeFormProps)
                   ...prev, 
                   account_id: parseInt(e.target.value) 
                 }))}
-                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 max-w-[350px] truncate"
                 disabled={accounts.length === 0}
               >
                 {accounts.length === 0 ? (
@@ -324,6 +324,7 @@ export default function AddTradeForm({ onSuccess, onCancel }: AddTradeFormProps)
             <input
               type="number"
               min="0"
+              step="any"
               value={formData.price}
               onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) }))}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500
