@@ -1,12 +1,40 @@
 import yfinance as yf
 import psycopg2
 import os
-from datetime import datetime, time
-import time
+from datetime import datetime, time as dt_time, timedelta 
+import time as time_module 
 from dotenv import load_dotenv
 import schedule
-
+import pytz
 load_dotenv()
+
+def get_madrid_tz():
+    """Obtiene la zona horaria de Madrid"""
+    return pytz.timezone('Europe/Madrid')
+
+def is_market_hours():
+    """
+    Verifica si estamos en horario de mercado europeo (9:00 - 17:30 Madrid)
+    """
+    madrid_tz = get_madrid_tz()
+    now = datetime.now(madrid_tz)
+    
+    market_start = dt_time(9, 0) 
+    market_end = dt_time(17, 30)
+    
+    is_weekday = now.weekday() < 5
+    is_market_time = market_start <= now.time() <= market_end
+    
+    return is_weekday and is_market_time
+
+def should_run_15min():
+    """
+    Decide si debe ejecutarse la actualización de 15 minutos
+    """
+    if is_market_hours():
+        return True
+    else:
+        return False
 
 def connect_db():
     return psycopg2.connect(
@@ -36,26 +64,14 @@ def try_get_data(identifier):
             continue
     return None, None, None
 
-
-def should_update(asset_type):
-    now = datetime.now()
-    is_weekend = now.weekday() >= 5
-    
-    if asset_type == 'crypto':
-        # Cripto siempre abre
-        return True  
-    
-    if asset_type == 'stock':
-        # Si es fin de semana, no perdamos tiempo con acciones
-        return not is_weekend 
-        
-    if asset_type == 'fund' or asset_type == 'bond':
-        # Los fondos solo actualizan una vez al día
-        return now.hour == 23 and now.minute < 15
-
-    return True
 def update_prices():
-    print(f"Iniciando actualización: {datetime.now()}")
+    """
+    Actualización de precios - solo se ejecuta si estamos en horario de mercado
+    """
+    if not should_run_15min():
+        return
+    
+    print(f"Iniciando actualización de alta frecuencia: {datetime.now()}")
     conn = None
     try:
         conn = connect_db()
@@ -64,20 +80,16 @@ def update_prices():
         cur.execute("SELECT asset_id, ticker, isin, type FROM assets WHERE is_active = TRUE")
         assets = cur.fetchall()
         problem_assets = []
+        
         for asset_id, ticker, isin, asset_type in assets:
             identifier = isin if isin else ticker
             if not identifier:
                 continue
-            if not should_update(asset_type):
-                print(f"{identifier} skipping (type: {asset_type})")
-                continue
             
-
             print(f"Buscando: {identifier}...", end=" ")
             
             price, date, final_ticker = try_get_data(identifier)
-            if not price:
-                problem_assets.append((ticker, isin, os.name))
+            
             if price:
                 try:
                     cur.execute("""
@@ -93,28 +105,80 @@ def update_prices():
                     print(f"Error DB: {e}")
             else:
                 print(f"No encontrado.")
+                problem_assets.append((ticker, isin, asset_type))
 
         if problem_assets:
             print("⚠️ ACTIVOS NO ENCONTRADOS:")
-            for ticker, isin, name in problem_assets:
-                print(f"   • {ticker or isin} - {name}")
+            for ticker, isin, asset_type in problem_assets:
+                print(f"   • {ticker or isin} - {asset_type}")
+        
         cur.close()
     except Exception as e:
         print(f"Error de conexión: {e}")
     finally:
         if conn:
             conn.close()
-    print(f"Tarea finalizada: {datetime.now()}\n")
+    
+    print(f"Tarea de alta frecuencia finalizada: {datetime.now()}\n")
 
+def nightly_update():
+    """
+    Actualización nocturna - Obtiene un último precio y consolida
+    """
+    print(f"Iniciando tarea nocturna: {datetime.now()}")
+    
+    conn = None
+    try:
+        conn = connect_db()
+        cur = conn.cursor()
+        
+        cur.execute("SELECT asset_id, ticker, isin, type FROM assets WHERE is_active = TRUE")
+        assets = cur.fetchall()
+        
+        print("Obteniendo precios de cierre...")
+        for asset_id, ticker, isin, asset_type in assets:
+            identifier = isin if isin else ticker
+            if not identifier:
+                continue
+            
+            price, date, final_ticker = try_get_data(identifier)
+            
+            if price:
+                try:
+                    cur.execute("""
+                        INSERT INTO price_history (asset_id, date, price)
+                        VALUES (%s, %s, %s)
+                        ON CONFLICT (asset_id, date) 
+                        DO UPDATE SET price = EXCLUDED.price
+                    """, (asset_id, date, price))
+                    conn.commit()
+                    print(f"  • {final_ticker}: {price:.4f}")
+                except Exception as e:
+                    conn.rollback()
+                    print(f"  • Error con {identifier}: {e}")
+        
+        cur.close()
+    except Exception as e:
+        print(f"Error en actualización nocturna: {e}")
+    finally:
+        if conn:
+            conn.close()
+    
+    consolidate_history()
+    
+    print(f"Tarea nocturna completada: {datetime.now()}\n")
 
 def consolidate_history():
     """
     Borra los puntos de alta frecuencia de días anteriores y deja solo 
     el último precio de cada día.
     """
-    conn = connect_db()
-    cur = conn.cursor()
+    print("🧹 Consolidando histórico...")
+    conn = None
     try:
+        conn = connect_db()
+        cur = conn.cursor()
+        
         cur.execute("""
             DELETE FROM price_history
             WHERE price_id NOT IN (
@@ -124,26 +188,88 @@ def consolidate_history():
             )
             AND date::date < CURRENT_DATE;
         """)
+        
+        affected_rows = cur.rowcount
         conn.commit()
-        print("Consolidación completada: Historial optimizado.")
-    except Exception as e:
-        conn.rollback()
-        print(f"Error consolidando: {e}")
-    finally:
+        print(f"  • Registros consolidados: {affected_rows} filas eliminadas")
+        
+        
+        cur.execute("""
+            SELECT 
+                a.ticker,
+                COUNT(ph.price_id) as total_registros,
+                MIN(ph.date) as primera_fecha,
+                MAX(ph.date) as ultima_fecha
+            FROM assets a
+            LEFT JOIN price_history ph ON a.asset_id = ph.asset_id
+            WHERE a.is_active = TRUE
+            GROUP BY a.asset_id, a.ticker
+            ORDER BY a.ticker
+        """)
+        
+        stats = cur.fetchall()
+        print("  Estadísticas por activo:")
+        for ticker, total, first, last in stats:
+            print(f"    • {ticker}: {total} registros ({first.date()} - {last.date()})")
+        
         cur.close()
-        conn.close()
+    except Exception as e:
+        print(f"Error consolidando: {e}")
+        if conn:
+            conn.rollback()
+    finally:
+        if conn:
+            conn.close()
 
-
+def run_initial_update():
+    """Ejecuta una actualización inicial al arrancar el script"""
+    print("Iniciando sistema de actualización de precios")
+    print(f"Fecha actual: {datetime.now()}")
+    print(f"Zona horaria: Europe/Madrid")
+    
+    if is_market_hours():
+        print("Mercado abierto - Ejecutando actualización inicial")
+        update_prices()
+    else:
+        print("Mercado cerrado - Esperando horario de mercado")
+        print("Horario: Lunes-Viernes 9:00 - 17:30 (Madrid)")
 
 
 # --- PROGRAMACIÓN ---
-# 1. Cada 15 minutos: Actualización de alta frecuencia
-schedule.every(15).minutes.do(update_prices)
-
-# 2. Cada noche: Limpieza de la base de datos
-schedule.every().day.at("00:01").do(consolidate_history)
+def setup_schedule():
+    """Configura todas las tareas programadas"""
+    
+    schedule.clear()
+    
+    # 1. Cada 15 minutos: Actualización de alta frecuencia (solo en mercado abierto)
+    schedule.every(15).minutes.do(update_prices)
+    
+    # 2. Cada noche: Actualización y consolidación
+    schedule.every().day.at("23:59").do(nightly_update)
+    
+    # 3. También programamos una consolidación los fines de semana por si acaso
+    schedule.every().saturday.at("02:00").do(consolidate_history)
+    schedule.every().sunday.at("02:00").do(consolidate_history)
+    
+    print("Programación configurada:")
+    print("  • Cada 15 minutos: Actualización (solo en mercado abierto)")
+    print("  • 23:59 diario: Actualización nocturna + consolidación")
+    print("  • Sábado 2:00: Consolidación adicional")
+    print("  • Domingo 2:00: Consolidación adicional")
 
 if __name__ == "__main__":
+    run_initial_update()
+    
+    setup_schedule()
+    
     while True:
-        schedule.run_pending()
-        time.sleep(60)
+        try:
+            schedule.run_pending()
+            time_module.sleep(60)
+            
+        except KeyboardInterrupt:
+            print("\n Deteniendo el sistema...")
+            break
+        except Exception as e:
+            print(f" Error en bucle principal: {e}")
+            time_module.sleep(60)
