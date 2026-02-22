@@ -148,7 +148,7 @@ export default function AssetsDonut({selectedAccountId,groupBy}: Props) {
               className="w-4 h-4 rounded-full flex-shrink-0"
               style={{ backgroundColor: item.color }}
             />
-            <span className="text-sm font-medium text-white truncate">
+            <span className="text-sm font-medium text-white max-w-[150px] truncate">
               {item.name}
             </span>
           </div>
