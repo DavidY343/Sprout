@@ -1,14 +1,11 @@
 from pydantic import BaseModel
 from datetime import date
-from decimal import Decimal
 from typing import List
 
 class PortfolioPoint(BaseModel):
-    day: date
-    total_value: Decimal
+    date: date
+    capital_invertido: float
+    total_value: float
 
-    class Config:
-        from_attributes = True
-
-class PortfolioHistoryResponse(BaseModel):
+class PortfolioGrowthResponse(BaseModel):
     history: List[PortfolioPoint]
