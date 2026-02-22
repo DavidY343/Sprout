@@ -4,6 +4,8 @@ from app.models import Operation, Asset, Account, PriceHistory
 from app.schemas.operation import OperationCreate
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import insert
+
+
 async def get_trade_history(db: AsyncSession, user_id: int):
     """
     Obtiene el historial completo de operaciones de un usuario
@@ -65,16 +67,11 @@ async def create_operation(db: AsyncSession, operation_data: OperationCreate, us
         asset_id=operation_data.asset_id,
         date=operation_data.date,
         price=operation_data.price
-    )
-
-    # Si hay conflicto en (asset_id, date), actualiza el precio
-    stmt_upsert = stmt_upsert.on_conflict_do_update(
+    ).on_conflict_do_update(
         index_elements=['asset_id', 'date'],
         set_=dict(price=operation_data.price)
     )
 
     await db.execute(stmt_upsert)
-    await db.commit()
     
-    await db.refresh(db_operation)
-    return db_operation
+    return db_operation, asset

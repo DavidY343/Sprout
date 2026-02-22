@@ -3,6 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user_id, get_db
 from app.services.trade_service import get_trade_history, create_operation
+from app.services.transaction_service import create_transaction_from_operation
+
+from app.models.asset import Asset
 from app.schemas.trade import TradeHistoryResponse
 from app.schemas.operation import OperationCreate, OperationResponse
 from typing import Optional
@@ -23,24 +26,27 @@ async def get_user_trade_history(user_id: int = Depends(get_current_user_id), db
     trades = await get_trade_history(db, user_id)
     return trades
 
-@router.post("/create", response_model=OperationResponse, status_code=201, summary="Create a new trade operation")
+
+@router.post("/create", response_model=OperationResponse, status_code=201)
 async def create_new_operation(operation_data: OperationCreate, user_id: int = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
-    """
-    Create a new trade operation (buy/sell).
-    
-    Requirements:
-    - Asset must exist
-    - Account must exist and belong to the user
-    - Optional: update price history with this trade price
-    """
     try:
-        operation = await create_operation(
-            db, 
-            operation_data, 
-            user_id
-        )
+        # 1. Crear la operación y obtener también el asset
+        operation, asset = await create_operation(db, operation_data, user_id)
+        
+        # 2. Crear la transacción de efectivo
+        await create_transaction_from_operation(db, operation, asset.name)
+        
+        # 3. Commit ÚNICO para todo (operación + price_history + transacción)
+        await db.commit()
+        
+        # 4. Refresh después del commit
+        await db.refresh(operation)
+        
         return operation
+
     except ValueError as e:
+        await db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error")
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error interno al procesar la operación: {str(e)}")
