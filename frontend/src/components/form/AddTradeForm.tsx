@@ -36,14 +36,6 @@ export default function AddTradeForm({ onSuccess, onCancel }: AddTradeFormProps)
     operation_type: 'buy'
   });
 
-  // Efecto para auto-ocultar toast
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
-
   // Cargar datos iniciales
   useEffect(() => {
     loadExistingData();
@@ -97,24 +89,24 @@ export default function AddTradeForm({ onSuccess, onCancel }: AddTradeFormProps)
     try {
       setLoading(true);
       await createTrade(formData);
-      
-      // Resetear formulario
-      setFormData({
-        asset_id: assets.length > 0 ? assets[0].asset_id : 0,
-        account_id: accounts.length > 0 ? accounts[0].account_id : 0,
-        date: new Date().toISOString().split('T')[0],
-        quantity: 1,
-        price: 0,
-        fees: 0,
-        operation_type: 'buy'
-      });
-      
-      // Recargar datos si es necesario
-      await loadExistingData();
-      
-      // Notificar éxito
-      if (onSuccess) onSuccess();
+    
       setToast({ message: 'Operación creada', type: 'success' });
+      await loadExistingData();
+
+      setFormData({
+          asset_id: assets.length > 0 ? assets[0].asset_id : 0,
+          account_id: accounts.length > 0 ? accounts[0].account_id : 0,
+          date: new Date().toISOString().split('T')[0],
+          quantity: 1,
+          price: 0,
+          fees: 0,
+          operation_type: 'buy'
+        });
+      
+        setTimeout(() => {if (onSuccess) {
+          onSuccess();
+        }}, 1000);
+        
     } catch (error) {
       console.error('Error creating trade:', error);
       setToast({ message: 'Error al crear la operación', type: 'error' });

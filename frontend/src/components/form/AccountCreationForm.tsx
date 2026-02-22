@@ -6,7 +6,7 @@ interface AccountCreationFormProps {
   onSuccess?: (account: any) => void;
   onCancel?: () => void;
   defaultCurrency?: string;
-  setToast?: (toast: {message: string, type: 'error' | 'success'}) => void; // Nuevo prop
+  setToast?: (toast: {message: string, type: 'error' | 'success'}) => void;
 }
 
 export default function AccountCreationForm({ 
