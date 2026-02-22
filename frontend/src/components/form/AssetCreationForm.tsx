@@ -100,29 +100,13 @@ export default function AssetCreationForm({
           onChange={(e) => setNewAsset(prev => ({ ...prev, type: e.target.value }))}
           className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
         >
-          <optgroup label="Activos Financieros Tradicionales">
-            <option value="stock">Stock (Acciones)</option>
-            <option value="bond">Bond (Bonos)</option>
-            <option value="etf">ETF (Fondo Cotizado)</option>
-            <option value="fund">Fondo Indexado</option>
-            <option value="reit">REIT (Bienes Raíces)</option>
-          </optgroup>
-          
-          <optgroup label="Activos Digitales">
-            <option value="crypto">Crypto (Criptomoneda)</option>
-          </optgroup>
-          
-          <optgroup label="Activos Reales/Tangibles">
-            <option value="real_estate">Real Estate (Propiedad)</option>
-            <option value="commodity">Commodity (Materia Prima Física)</option>
-            <option value="collectible">Collectible (Coleccionable)</option>
-          </optgroup>
-          
-          <optgroup label="Activos de Liquidez y Alternativos">
-            <option value="cash">Cash (Efectivo/Depósitos)</option>
-            <option value="private">Private (Inversiones Privadas)</option>
-            <option value="derivative">Derivative (Opciones/Futuros)</option>
-          </optgroup>
+          <option value="stock">Stock (Acciones)</option>
+          <option value="bond">Bond (Bonos)</option>
+          <option value="etf">ETF (Fondo Cotizado)</option>
+          <option value="fund">Fondo Indexado</option>
+          <option value="reit">REIT (Bienes Raíces)</option>
+          <option value="crypto">Crypto (Criptomoneda)</option>
+
         </select>
         <input
           type="text"
