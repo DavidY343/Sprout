@@ -13,3 +13,17 @@ export async function getPortfolioGrowth(): Promise<PortfolioHistoryResponse> {
     throw error
   }
 }
+
+
+/** 
+ * Obtiene los puntos de datos para el gráfico de crecimiento de una cuenta específica
+ */
+export async function getAccountGrowth(accountId: number): Promise<PortfolioHistoryResponse> {
+  try {
+    const data = await apiGet<PortfolioHistoryResponse>(`/history_chart/growth/account/${accountId}`, true)
+    return data
+  } catch (error) {
+    console.error('Error fetching account growth:', error);
+    throw error;
+  }
+};

@@ -1,18 +1,26 @@
 import { useEffect, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { getPortfolioGrowth } from '../services/historyService';
+import { getAccountGrowth, getPortfolioGrowth } from '../services/historyService';
 import { ChartDataPoint } from '../types/history_chart';
 
-export default function PortfolioHistoryChart() {
+interface Props {
+  accountId: number | 'all';
+}
+
+export default function PortfolioHistoryChart({ accountId }: Props) {
   const [data, setData] = useState<ChartDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await getPortfolioGrowth();
+        setLoading(true);
+        // Decisión de servicio según el selector
+        const response = accountId === 'all' 
+          ? await getPortfolioGrowth() 
+          : await getAccountGrowth(accountId);
         
-        const formattedData: ChartDataPoint[] = response.history.map(point => {
+        const formattedData: ChartDataPoint[] = response.history.map((point: any) => {
           const totalValue = parseFloat(point.total_value);
           const capital = parseFloat(point.capital_invertido);
           
@@ -37,9 +45,9 @@ export default function PortfolioHistoryChart() {
     };
 
     fetchHistory();
-  }, []);
+  }, [accountId]); // Se recarga cuando cambia el ID de cuenta
 
-  if (loading) return <div className="text-gray-400">Cargando gráfico...</div>;
+  if (loading) return <div className="h-80 flex items-center justify-center text-gray-400">Cargando historial...</div>;
 
   return (
     <div className="h-full w-full">
