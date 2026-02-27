@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user_id
@@ -6,7 +6,10 @@ from app.core.dependencies import get_db
 
 from app.services.account_service import get_accounts_with_balance, get_selected_account_with_balance
 from app.services.assets_service import get_all_assets, get_asset_allocation, get_global_asset_allocation
+from app.services.performance_service import get_performance_metrics
+
 from app.schemas.allocation import AssetAllocation, AccountWithBalance, AssetTableRow
+from app.schemas.performance import PerformanceResponse
 
 router = APIRouter()
 
@@ -41,3 +44,13 @@ async def get_assets_by_type(group_by: str, user_id: int = Depends(get_current_u
     # GROUP_BY ::= asset | theme | type
     return await get_global_asset_allocation(db, user_id, group_by)
 
+
+@router.get("/performance", response_model=PerformanceResponse)
+async def get_performance(user_id: int = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
+    try:
+        # Nota: Aquí llamamos a una versión interna de tu query de crecimiento 
+        # que devuelve el estado actual y los estados en fechas clave.
+        metrics = await get_performance_metrics(db, user_id)
+        return metrics
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
