@@ -1,7 +1,7 @@
-// components/layout/TopBar.tsx
 import { useState, useEffect } from 'react';
 import { UserCircle, LogOut } from 'lucide-react';
 import { isAuthenticated, logout, getUserEmail } from '../services/authService';
+import { app, button } from '../styles/theme';
 
 interface Props {
   activeTab: string;
@@ -13,9 +13,8 @@ export default function TopBar({ activeTab, setActiveTab }: Props) {
 
   const tabs = [
     { id: 'portfolio', label: 'Dashboard' },
-    { id: 'trades', label: 'Trade Logs' },
-    { id: 'rebalance', label: 'Rebalance' }, 
-    { id: 'transactions', label: 'Transactions' }
+    { id: 'trades', label: 'Trades' },
+    { id: 'transactions', label: 'Cash Flow' }
   ];
 
   useEffect(() => {
@@ -28,8 +27,8 @@ export default function TopBar({ activeTab, setActiveTab }: Props) {
   };
 
   return (
-    <header className="flex items-center justify-between px-8 py-5 bg-[#0B0F1A] border-b border-white/10">
-      <h1 className="text-xl font-semibold tracking-wide">
+    <header className={app.topBar}>
+      <h1 className="text-xl font-semibold tracking-wide text-[#2C2C2C]">
         Financial Hub
       </h1>
 
@@ -40,14 +39,13 @@ export default function TopBar({ activeTab, setActiveTab }: Props) {
             onClick={() => setActiveTab(tab.id)}
             className={`text-lg font-medium transition-all duration-200 relative cursor-pointer ${
               activeTab === tab.id
-                ? 'text-white'
-                : 'text-gray-400 hover:text-gray-200'
+                ? 'text-[#2C2C2C]'
+                : 'text-[#8B8578] hover:text-[#5A5549]'
             }`}
           >
             {tab.label}
-            {/* Indicador activo */}
             {activeTab === tab.id && (
-              <div className="absolute -bottom-5 left-0 right-0 h-0.5 bg-white"></div>
+              <div className="absolute -bottom-5 left-0 right-0 h-0.5 bg-[#2C2C2C]"></div>
             )}
           </button>
         ))}
@@ -55,14 +53,14 @@ export default function TopBar({ activeTab, setActiveTab }: Props) {
 
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 text-sm">
-          <UserCircle className="w-5 h-5 text-gray-300" />
-          <span className="text-gray-300">
+          <UserCircle className="w-5 h-5 text-[#8B8578]" />
+          <span className="text-[#5A5549]">
             {userEmail || 'Usuario'}
           </span>
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-500/30 text-red-300 hover:bg-red-500/10 transition text-sm font-medium cursor-pointer"
+          className={button.danger}
         >
           <LogOut className="w-4 h-4" />
           Cerrar sesión

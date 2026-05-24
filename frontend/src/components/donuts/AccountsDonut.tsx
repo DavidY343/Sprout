@@ -3,8 +3,9 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { AccountWithBalance } from '../../types/account'
 import { getAccountWithBalance } from '../../services/accountService'
 import DonutTooltip from './DonutToolTip'
+import { donut, colors } from '../../styles/theme'
 
-const COLORS = ['#8b5cf6', '#22c55e', '#f97316', '#06b6d4', '#ef4444', '#eab308']
+const COLORS = colors.chart
 
 interface Props {
   accounts: AccountWithBalance[]
@@ -48,7 +49,7 @@ export default function AccountsDonut({
 
   if (loading) {
     return (
-      <div className="h-64 flex items-center justify-center text-gray-400">
+      <div className={donut.emptyState}>
         Cargando...
       </div>
     )
@@ -56,7 +57,7 @@ export default function AccountsDonut({
 
   if (data.length === 0) { 
     return (
-      <div className="h-64 flex items-center justify-center text-gray-400">
+      <div className={donut.emptyState}>
         Sin datos
       </div>
     )
@@ -91,10 +92,10 @@ export default function AccountsDonut({
   const remainingPercentage = total > 0 ? ((remainingTotal / total) * 100).toFixed(1) : '0.0'
 
   return (
-    <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-12">
+    <div className={donut.shell}>
       {/* Gráfico Donut*/}
-      <div className="w-full lg:w-[60%] relative flex justify-center">
-        <div className="w-64 h-64 lg:w-80 lg:h-80">
+      <div className={donut.chartColumn}>
+        <div className={donut.chartBox}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -122,9 +123,9 @@ export default function AccountsDonut({
           </ResponsiveContainer>
         </div>
         
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+        <div className={donut.centerOverlay}>
           <div className="text-center">
-            <div className="text-2xl font-bold text-white">
+            <div className={donut.centerValue}>
               {total.toLocaleString('es-ES', {
                 style: 'currency',
                 currency: 'EUR',
@@ -132,7 +133,7 @@ export default function AccountsDonut({
                 maximumFractionDigits: 0
               })}
             </div>
-            <div className="text-sm text-gray-400 mt-1">
+            <div className={donut.centerLabel}>
               {selectedAccountId === 'all' ? 'Total' : 'Valor total'}
             </div>
           </div>
@@ -140,30 +141,30 @@ export default function AccountsDonut({
       </div>
 
       {/* Leyenda*/}
-      <div className="w-full lg:w-[40%]">
-        <div className="space-y-3 w-full">
+      <div className={donut.legendColumn}>
+        <div className={donut.legendStack}>
           {visibleLegendItems.map((item, index) => (
             <div 
               key={item.name} 
-              className="group flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+              className={donut.legendItem}
             >
               {/* Izquierda: Color + Nombre */}
-              <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className={donut.legendLeft}>
                 <div 
-                  className="w-4 h-4 rounded-full flex-shrink-0"
+                  className={donut.legendDot}
                   style={{ backgroundColor: item.color }}
                 />
-                <span className="text-sm font-medium text-white truncate">
+                <span className="text-sm font-medium text-[#2C2C2C] truncate">
                   {item.name}
                 </span>
               </div>
               
               {/* Derecha: Precio + Porcentaje */}
-              <div className="flex items-center gap-4 flex-shrink-0 ml-4">
-                <span className="text-white font-semibold text-sm whitespace-nowrap">
+              <div className={donut.legendRight}>
+                <span className={donut.legendValue}>
                   €{item.formattedValue}
                 </span>
-                <span className="text-gray-400 font-semibold text-sm whitespace-nowrap">
+                <span className={donut.legendPct}>
                   {item.percentage}%
                 </span>
               </div>
@@ -172,21 +173,21 @@ export default function AccountsDonut({
           
           {/* Elementos restantes agrupados */}
           {hasMoreItems && (
-            <div className="group flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+            <div className={donut.legendItem}>
               {/* Izquierda: Color + Nombre */}
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-4 h-4 rounded-full flex-shrink-0 bg-gray-600" />
-                <span className="text-sm font-medium text-gray-300 truncate">
+              <div className={donut.legendLeft}>
+                <div className="w-4 h-4 rounded-full flex-shrink-0 bg-[#B0A99C]" />
+                <span className="text-sm font-medium text-[#5A5549] truncate">
                   Otros ({remainingItems.length} categorías)
                 </span>
               </div>
               
               {/* Derecha: Precio + Porcentaje */}
-              <div className="flex items-center gap-4 flex-shrink-0 ml-4">
-                <span className="text-gray-400 font-semibold text-sm whitespace-nowrap">
+              <div className={donut.legendRight}>
+                <span className="text-[#5A5549] font-semibold text-sm whitespace-nowrap">
                   €{remainingTotal.toLocaleString('es-ES', { minimumFractionDigits: 0 })}
                 </span>
-                <span className="text-gray-500 font-semibold text-sm whitespace-nowrap">
+                <span className="text-[#8B8578] font-semibold text-sm whitespace-nowrap">
                   {remainingPercentage}%
                 </span>
               </div>

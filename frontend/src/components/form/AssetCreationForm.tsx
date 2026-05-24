@@ -1,141 +1,95 @@
 import { useState } from 'react';
+import { Loader2, Check } from 'lucide-react';
 import { AssetCreate } from '../../types/asset';
 import { createAsset } from '../../services/assetService';
+import { input, button, text } from '../../styles/theme';
+import Toast from '../Toast';
 
 interface AssetCreationFormProps {
   onSuccess?: (asset: any) => void;
-  onCancel?: () => void;
-  defaultCurrency?: string;
-  setToast?: (toast: {message: string, type: 'error' | 'success'}) => void;
 }
 
-export default function AssetCreationForm({ 
-  onSuccess, 
-  onCancel,
-  defaultCurrency = 'EUR',
-  setToast
-}: AssetCreationFormProps) {
-  const [newAsset, setNewAsset] = useState<AssetCreate>({
-    name: '',
-    currency: defaultCurrency,
-    type: 'stock'
-  });
+export default function AssetCreationForm({ onSuccess }: AssetCreationFormProps) {
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{message: string, type: 'error' | 'success'} | null>(null);
+  const [form, setForm] = useState<AssetCreate>({
+    name: '', ticker: '', isin: '', currency: 'EUR', type: 'etf', theme: ''
+  });
 
-  const handleCreateAsset = async () => {
-    if (!newAsset.name.trim()) {
-      if (setToast) {
-        setToast({ message: 'El nombre del activo es requerido', type: 'error' });
-      }
-      return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim() && !form.ticker?.trim()) {
+      setToast({ message: 'Necesitas al menos nombre o ticker', type: 'error' }); return;
     }
-    
     try {
       setLoading(true);
-      const createdAsset = await createAsset(newAsset);
-      
-      setNewAsset({
-        name: '',
-        currency: defaultCurrency,
-        type: 'stock'
-      });
-      
-      if (onSuccess) onSuccess(createdAsset);
-      
-      if (setToast) {
-        setToast({ message: 'Activo creado exitosamente', type: 'success' });
-      }
-    } catch (error) {
-      console.error('Error creating asset:', error);
-      if (setToast) {
-        setToast({ message: 'Error al crear el activo', type: 'error' });
-      }
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+      const asset = await createAsset({ ...form, name: form.name || form.ticker || '' });
+      setToast({ message: `${asset.ticker || asset.name} creado — el worker traerá precios`, type: 'success' });
+      setForm({ name: '', ticker: '', isin: '', currency: 'EUR', type: 'etf', theme: '' });
+      setTimeout(() => { if (onSuccess) onSuccess(asset) }, 800);
+    } catch { setToast({ message: 'Error al crear activo', type: 'error' }) }
+    finally { setLoading(false) }
   };
 
   return (
-    <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-4 space-y-3">
-      <h3 className="text-lg font-medium text-white">Nuevo Activo</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <input
-          type="text"
-          placeholder="Nombre del activo*"
-          value={newAsset.name}
-          onChange={(e) => setNewAsset(prev => ({ ...prev, name: e.target.value }))}
-          className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
-        />
-        <input
-          type="text"
-          placeholder="Ticker (opcional)"
-          value={newAsset.ticker || ''}
-          onChange={(e) => setNewAsset(prev => ({ ...prev, ticker: e.target.value }))}
-          className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
-        />
-        <input
-          type="text"
-          placeholder="ISIN (opcional)"
-          value={newAsset.isin || ''}
-          onChange={(e) => setNewAsset(prev => ({ ...prev, isin: e.target.value }))}
-          className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
-        />
-        <select
-          value={newAsset.currency}
-          onChange={(e) => setNewAsset(prev => ({ ...prev, currency: e.target.value }))}
-          className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
-        >
-          <option value="EUR">EUR</option>
-          <option value="USD">USD</option>
-          <option value="GBP">GBP</option>
-          <option value="JPY">JPY</option>
-          <option value="CHF">CHF</option>
-          <option value="CAD">CAD</option>
-          <option value="AUD">AUD</option>
-          <option value="CNY">CNY</option>
-        </select>
-        <select
-          value={newAsset.type}
-          onChange={(e) => setNewAsset(prev => ({ ...prev, type: e.target.value }))}
-          className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
-        >
-          <option value="stock">Stock (Acciones)</option>
-          <option value="bond">Bond (Bonos)</option>
-          <option value="etf">ETF (Fondo Cotizado)</option>
-          <option value="fund">Fondo Indexado</option>
-          <option value="reit">REIT (Bienes Raíces)</option>
-          <option value="crypto">Crypto (Criptomoneda)</option>
-
-        </select>
-        <input
-          type="text"
-          placeholder="Theme (opcional)"
-          value={newAsset.theme || ''}
-          onChange={(e) => setNewAsset(prev => ({ ...prev, theme: e.target.value }))}
-          className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
-        />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className={text.fieldLabel}>Ticker (Yahoo Finance)</label>
+          <input type="text" placeholder="Ej: VUSA.L, MSFT" value={form.ticker || ''}
+            onChange={e => setForm(p => ({ ...p, ticker: e.target.value.toUpperCase() }))}
+            className={input.base + ' font-mono'} />
+          <p className="text-[10px] text-[#B0A99C] mt-1">Identificador que usa el worker para traer precios</p>
+        </div>
+        <div>
+          <label className={text.fieldLabel}>Nombre</label>
+          <input type="text" placeholder="Ej: Vanguard S&P 500 ETF" value={form.name}
+            onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+            className={input.base} />
+        </div>
+        <div>
+          <label className={text.fieldLabel}>ISIN (opcional)</label>
+          <input type="text" placeholder="Ej: IE00B3XXRP09" value={form.isin || ''}
+            onChange={e => setForm(p => ({ ...p, isin: e.target.value.toUpperCase() }))}
+            className={input.base + ' font-mono'} />
+        </div>
       </div>
-      <div className="flex justify-end gap-2">
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={loading}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white disabled:opacity-50 cursor-pointer"
-          >
-            Cancelar
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
+        <div>
+          <label className={text.fieldLabel}>Tipo</label>
+          <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
+            className={input.select}>
+            <option value="etf">ETF</option>
+            <option value="fund">Fondo indexado</option>
+            <option value="stock">Acción</option>
+            <option value="crypto">Crypto</option>
+            <option value="bond">Bono</option>
+            <option value="reit">REIT</option>
+          </select>
+        </div>
+        <div>
+          <label className={text.fieldLabel}>Divisa</label>
+          <select value={form.currency} onChange={e => setForm(p => ({ ...p, currency: e.target.value }))}
+            className={input.select}>
+            <option value="EUR">EUR</option>
+            <option value="USD">USD</option>
+            <option value="GBP">GBP</option>
+          </select>
+        </div>
+        <div>
+          <label className={text.fieldLabel}>Temática (opcional)</label>
+          <input type="text" placeholder="Ej: Tecnología, Global" value={form.theme || ''}
+            onChange={e => setForm(p => ({ ...p, theme: e.target.value }))}
+            className={input.base} />
+        </div>
+        <div>
+          <button type="submit" disabled={loading}
+            className={button.primary + ' flex items-center justify-center gap-2'}>
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4" /> Crear activo</>}
           </button>
-        )}
-        <button
-          type="button"
-          onClick={handleCreateAsset}
-          disabled={loading || !newAsset.name.trim()}
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-        >
-          {loading ? 'Creando...' : 'Crear Activo'}
-        </button>
+        </div>
       </div>
-    </div>
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+    </form>
   );
 }

@@ -23,6 +23,23 @@ async def create_asset(db: AsyncSession, asset_data: AssetCreate) -> Asset:
     await db.refresh(db_asset)
     return db_asset
 
+async def get_all_assets_with_prices(db: AsyncSession):
+    """Returns all active assets with their latest price from price_history."""
+    query = text("""
+        SELECT a.asset_id, a.name, a.ticker, a.isin, a.type, a.currency,
+               COALESCE(lp.price, 0) AS current_price
+        FROM assets a
+        LEFT JOIN LATERAL (
+            SELECT price FROM price_history
+            WHERE asset_id = a.asset_id
+            ORDER BY date DESC LIMIT 1
+        ) lp ON true
+        WHERE a.is_active = true
+        ORDER BY a.name;
+    """)
+    result = await db.execute(query)
+    return [dict(r) for r in result.mappings().all()]
+
 async def get_user_assets(db: AsyncSession, user_id: int):
     # Buscamos activos que tengan operaciones en cuentas del usuario
     stmt = (

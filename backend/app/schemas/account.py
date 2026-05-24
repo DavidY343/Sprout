@@ -13,12 +13,13 @@ class AccountCreate(BaseModel):
             raise ValueError('Currency must be 3 characters')
         return v.upper()
     
-    # @field_validator('type') // FUTURA VALIDACION
-    # def validate_type(cls, v):
-    #     valid_types = ['broker', 'bank', 'crypto_exchange', 'other']
-    #     if v.lower() not in valid_types:
-    #         raise ValueError(f'Type must be one of: {", ".join(valid_types)}')
-    #     return v.lower()
+    @field_validator('type')
+    @classmethod
+    def validate_type(cls, v):
+        valid_types = ['broker', 'neobroker', 'bank', 'online_bank', 'crypto', 'other']
+        if v.lower() not in valid_types:
+            raise ValueError(f'Type must be one of: {", ".join(valid_types)}')
+        return v.lower()
 
 class AccountResponse(BaseModel):
     account_id: int

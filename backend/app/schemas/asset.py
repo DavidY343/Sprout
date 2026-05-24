@@ -17,12 +17,13 @@ class AssetCreate(BaseModel):
             raise ValueError('Currency must be 3 characters (e.g., EUR, USD)')
         return v.upper()
     
-    # @field_validator('type') // FUTURA VALIDACION
-    # def validate_type(cls, v):
-    #     valid_types = ['stock', 'crypto', 'bond', 'etf', 'fund', 'commodity', 'other']
-    #     if v.lower() not in valid_types:
-    #         raise ValueError(f'Type must be one of: {", ".join(valid_types)}')
-    #     return v.lower()
+    @field_validator('type')
+    @classmethod
+    def validate_type(cls, v):
+        valid_types = ['stock', 'crypto', 'bond', 'etf', 'fund', 'reit']
+        if v.lower() not in valid_types:
+            raise ValueError(f'Type must be one of: {", ".join(valid_types)}')
+        return v.lower()
 
 # Schema para respuesta de asset
 class AssetResponse(BaseModel):

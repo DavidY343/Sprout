@@ -1,4 +1,5 @@
 import { AccountWithBalance } from '../../types/account'
+import { input } from '../../styles/theme'
 
 interface Props {
   accounts: AccountWithBalance[]
@@ -17,7 +18,7 @@ export default function AccountSelector({
       onChange={e =>
         onChange(e.target.value === 'all' ? 'all' : Number(e.target.value))
       }
-      className="bg-[#0f172a] text-white px-3 py-2 rounded-lg border border-white/10"
+      className={input.filter}
     >
       <option value="all">Todas las cuentas</option>
       {accounts.map(acc => (

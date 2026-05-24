@@ -1,1 +1,21 @@
 @import "tailwindcss";
+
+/* Le Corbusier light theme — global overrides */
+html {
+  background-color: #F5F0E8;
+  color: #2C2C2C;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #F5F0E8; }
+::-webkit-scrollbar-thumb { background: #D5CEC2; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #B0A99C; }
+
+/* Select/option backgrounds for light mode */
+option { background: #FFFFFF; color: #2C2C2C; }
+
+/* Date input icon */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+}

@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react'
 import TopBar from './components/TopBar'
 import PortfolioPage from './pages/PortfolioPage'
 import TradesPage from './pages/TradesPage'
-import RebalancePage from './pages/RebalancePage'
 import LoginPage from './pages/LoginPage'
 import TransactionPage from './pages/TransactionPage'
 import { isAuthenticated } from './services/authService'
+import { app } from './styles/theme'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('portfolio')
@@ -29,12 +29,11 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen text-white bg-[#0B0F1A]">
+    <div className={app.body}>
       <TopBar activeTab={activeTab} setActiveTab={setActiveTab} />
-      <main className="p-8 max-w-screen-2xl mx-auto">
+      <main className={app.main}>
         {activeTab === 'portfolio' && <PortfolioPage />}
         {activeTab === 'trades' && <TradesPage />}
-        {activeTab === 'rebalance' && <RebalancePage />}
         {activeTab === 'transactions' && <TransactionPage />}
       </main>
     </div>

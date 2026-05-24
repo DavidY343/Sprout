@@ -47,32 +47,30 @@ export default function PortfolioHistoryChart({ accountId }: Props) {
     fetchHistory();
   }, [accountId]); // Se recarga cuando cambia el ID de cuenta
 
-  if (loading) return <div className="h-80 flex items-center justify-center text-gray-400">Cargando historial...</div>;
+  if (loading) return <div className="h-80 flex items-center justify-center text-[#8B8578]">Cargando historial...</div>;
 
   return (
     <div className="h-full w-full">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <defs>
-            {/* Degradado para el Valor Total */}
             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+              <stop offset="5%" stopColor="#4A6FA5" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#4A6FA5" stopOpacity={0} />
             </linearGradient>
-            {/* Degradado para el Capital Invertido */}
             <linearGradient id="colorCapital" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.2} />
-              <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
+              <stop offset="5%" stopColor="#B0A99C" stopOpacity={0.15} />
+              <stop offset="95%" stopColor="#B0A99C" stopOpacity={0} />
             </linearGradient>
           </defs>
           
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff10" />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5DED3" />
           
           <XAxis 
             dataKey="displayDate" 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: '#9ca3af', fontSize: 12 }}
+            tick={{ fill: '#8B8578', fontSize: 12 }}
             minTickGap={40}
           />
           
@@ -83,10 +81,11 @@ export default function PortfolioHistoryChart({ accountId }: Props) {
           
           <Tooltip 
             contentStyle={{ 
-                backgroundColor: '#11162A', 
-                border: '1px solid #ffffff20', 
+                backgroundColor: '#FFFFFF', 
+                border: '1px solid #E5DED3', 
                 borderRadius: '8px',
-                fontSize: '12px'
+                fontSize: '12px',
+                color: '#2C2C2C'
             }}
             formatter={(value: number | any) => 
                 new Intl.NumberFormat('es-ES', { 
@@ -101,7 +100,7 @@ export default function PortfolioHistoryChart({ accountId }: Props) {
             type="stepAfter"
             dataKey="capital_invertido"
             name="Capital Invertido"
-            stroke="#94a3b8"
+            stroke="#B0A99C"
             strokeWidth={1}
             strokeDasharray="5 5"
             fill="url(#colorCapital)"
@@ -113,7 +112,7 @@ export default function PortfolioHistoryChart({ accountId }: Props) {
             type="monotone"
             dataKey="total_value"
             name="Valor Total"
-            stroke="#8b5cf6"
+            stroke="#4A6FA5"
             strokeWidth={3}
             fill="url(#colorValue)"
             fillOpacity={1}
