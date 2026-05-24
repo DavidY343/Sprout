@@ -23,16 +23,16 @@ export default function Toast({
   const getStyles = () => {
     switch (type) {
       case 'error':
-        return 'bg-red-900/90 border-red-700/30 text-red-300';
+        return 'bg-white border-[#C25B3F]/30 text-[#C25B3F]';
       case 'success':
-        return 'bg-green-900/90 border-green-700/30 text-green-300';
+        return 'bg-white border-[#6B8F71]/30 text-[#6B8F71]';
       default:
-        return 'bg-gray-900/90 border-gray-700/30 text-gray-300';
+        return 'bg-white border-[#E5DED3] text-[#5A5549]';
     }
   };
 
   return (
-    <div className={`fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 border backdrop-blur-sm ${getStyles()}`}>
+    <div className={`fixed top-4 right-4 px-4 py-3 rounded-lg shadow-md z-50 border ${getStyles()}`}>
       <p className="font-medium">{message}</p>
     </div>
   );

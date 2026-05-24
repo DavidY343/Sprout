@@ -77,8 +77,7 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
 
 export function logout(): void {
     clearAuthData();
-    // Redirigir al login
-    window.location.href = '/login';
+    window.location.reload();
 }
 
 export async function refreshAccessToken(): Promise<string> {

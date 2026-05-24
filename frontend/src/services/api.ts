@@ -1,6 +1,6 @@
 import { getAccessToken, refreshAccessToken, isAuthenticated, logout } from './authService';
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 // Variable para evitar múltiples refrescos simultáneos
 let isRefreshing = false;
@@ -113,12 +113,20 @@ async function apiRequest<T>(
         
         try {
             const errorData = await response.json();
-            errorMessage = errorData.detail || errorData.message || errorMessage;
+            if (errorData.detail && Array.isArray(errorData.detail)) {
+                errorMessage = errorData.detail.map((err: any) => err.msg).join(', ');
+            } else {
+                errorMessage = errorData.detail || errorData.message || errorMessage;
+            }
         } catch {
-            errorMessage = await response.text() || errorMessage;
+            try {
+                errorMessage = await response.text() || errorMessage;
+            } catch (textError) {
+                // ignore
+            }
         }
         
-        throw new Error(errorMessage);
+        throw new Error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
     }
 
     return response.json();

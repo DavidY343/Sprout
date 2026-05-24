@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AssetTableRow } from '../../types/asset'
 import { getAllAssets } from '../../services/assetService'
 import { TrendingUp, TrendingDown, ChevronUp, ChevronDown } from 'lucide-react'
+import { surface, table } from '../../styles/theme'
 
 interface AssetWithExtras extends AssetTableRow {
   weight: number
@@ -52,15 +53,15 @@ export default function AssetsTable() {
     return sortDirection === 'asc' ? (aV > bV ? 1 : -1) : (aV < bV ? 1 : -1)
   })
 
-  if (loading) return <div className="p-12 text-center text-gray-500 italic animate-pulse">Cargando activos...</div>
-  if (assets.length === 0) return <div className="p-12 text-center text-gray-500">No hay datos</div>
+  if (loading) return <div className="p-12 text-center text-[#8B8578] italic animate-pulse">Cargando activos...</div>
+  if (assets.length === 0) return <div className="p-12 text-center text-[#8B8578]">No hay datos</div>
 
   return (
-    <div className="w-full bg-[#11162A] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+    <div className={surface.tableContainer}>
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className={table.wrapper}>
           <thead>
-            <tr className="bg-white/5 border-b border-white/10">
+            <tr className={table.headRow}>
               <Th label="Activo" field="name" current={sortField} dir={sortDirection} onSort={handleSort} />
               <Th label="Cuenta" field="account_name" current={sortField} dir={sortDirection} onSort={handleSort} />
               <Th label="Peso" field="weight" current={sortField} dir={sortDirection} onSort={handleSort} align="right" />
@@ -70,21 +71,21 @@ export default function AssetsTable() {
               <Th label="Rendimiento" field="profit" current={sortField} dir={sortDirection} onSort={handleSort} align="right" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-[#F0EBE3]">
             {sortedAssets.map((asset) => (
-              <tr key={`${asset.asset_id}-${asset.account_id}`} className="hover:bg-white/[0.02] transition-colors group">
+              <tr key={`${asset.asset_id}-${asset.account_id}`} className="hover:bg-[#FAF7F0]/60 transition-colors group">
                 <td className="py-3 px-4">
-                  <div className="font-medium text-white group-hover:text-purple-400 transition-colors text-sm">{asset.name}</div>
-                  <div className="text-[10px] text-gray-500 font-medium uppercase tracking-tight">{asset.ticker || asset.isin} • {asset.type}</div>
+                  <div className="font-medium text-[#2C2C2C] group-hover:text-[#4A6FA5] transition-colors text-sm">{asset.name}</div>
+                  <div className="text-[10px] text-[#B0A99C] font-medium uppercase tracking-tight">{asset.ticker || asset.isin} • {asset.type}</div>
                 </td>
-                <td className="py-3 px-4 text-sm text-gray-400 italic font-medium">{asset.account_name}</td>
-                <td className="py-3 px-4 text-sm text-right text-purple-300 font-medium">{asset.weight.toFixed(2)}%</td>
-                <td className="py-3 px-4 text-sm text-right text-gray-300 font-medium">{formatNumber(asset.quantity)}</td>
-                <td className="py-3 px-4 text-sm text-right text-gray-400 font-medium">{formatCurrency(asset.invested_value)}</td>
-                <td className="py-3 px-4 text-sm text-right text-white font-bold font-medium">{formatCurrency(asset.total_value)}</td>
+                <td className="py-3 px-4 text-sm text-[#8B8578] italic font-medium">{asset.account_name}</td>
+                <td className="py-3 px-4 text-sm text-right text-[#4A6FA5] font-medium">{asset.weight.toFixed(2)}%</td>
+                <td className="py-3 px-4 text-sm text-right text-[#5A5549] font-medium">{formatNumber(asset.quantity)}</td>
+                <td className="py-3 px-4 text-sm text-right text-[#8B8578] font-medium">{formatCurrency(asset.invested_value)}</td>
+                <td className="py-3 px-4 text-sm text-right text-[#2C2C2C] font-bold font-medium">{formatCurrency(asset.total_value)}</td>
                 
                 {/* Dinero arriba (sm), Porcentaje abajo (xs) */} 
-                <td className={`py-3 px-4 text-right ${asset.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                <td className={`py-3 px-4 text-right ${asset.profit >= 0 ? 'text-[#6B8F71]' : 'text-[#C25B3F]'}`}>
                   <div className="flex flex-col items-end">
                     <div className="text-sm font-bold flex items-center gap-1 font-mono">
                       {asset.profit >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
@@ -109,12 +110,12 @@ function Th({ label, field, current, dir, onSort, align = 'left' }: any) {
   return (
     <th 
       onClick={() => onSort(field)}
-      className={`py-4 px-4 text-xs font-bold uppercase tracking-widest text-gray-400 cursor-pointer hover:text-white transition-colors ${align === 'right' ? 'text-right' : 'text-left'}`}
+      className={`py-4 px-4 text-xs font-bold uppercase tracking-widest text-[#8B8578] cursor-pointer hover:text-[#2C2C2C] transition-colors ${align === 'right' ? 'text-right' : 'text-left'}`}
     >
       <div className={`flex items-center gap-1 ${align === 'right' ? 'justify-end' : 'justify-start'}`}>
         {label}
         <div className="w-4 flex justify-center">
-          {isActive ? (dir === 'asc' ? <ChevronUp size={14} className="text-purple-500" /> : <ChevronDown size={14} className="text-purple-500" />) : null}
+          {isActive ? (dir === 'asc' ? <ChevronUp size={14} className="text-[#4A6FA5]" /> : <ChevronDown size={14} className="text-[#4A6FA5]" />) : null}
         </div>
       </div>
     </th>

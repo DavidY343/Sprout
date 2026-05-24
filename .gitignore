@@ -1,53 +1,55 @@
-# Ignore Python cache files
-__pycache__/
+# ===== Environment =====
+.env
+.env.local
+.env.production
+!.env.example
+!frontend/.env.example
 
-# Ignore virtual environment
-venv/
+# ===== Python =====
 __pycache__/
-
-# Ignore build artifacts
-build/
+*.py[cod]
+*$py.class
+*.egg-info/
 dist/
-*.egg-info
+build/
+.eggs/
+*.egg
+venv/
 
-# Ignore IDE and editor files
-.idea/
-.vscode/
-*.sublime-project
-*.sublime-workspace
-*.swp
-*.swo
+# ===== Node =====
+node_modules/
+dist-ssr/
 
-# Ignore logs and temporary files
+# ===== Logs =====
 *.log
-*.tmp
-*.pyc
-*.pyo
-
-# Ignore configuration files
-config/*.ini
-
-# ================ FRONTEND ================
-logs
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.DS_Store
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Docker volumes =====
+postgres_data/
+backups/
+
+# ===== Internal docs =====
+.internal/
 *.sw?
 
 #Ignore custom

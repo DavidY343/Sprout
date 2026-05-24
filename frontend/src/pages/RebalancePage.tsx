@@ -6,6 +6,7 @@ import { getRebalanceTable, saveRebalanceSettings } from '../services/rebalanceS
 import { getAllAssets } from '../services/assetService'
 import KPICard from '../components/KPICard'
 import Toast from '../components/Toast'
+import { layout, surface, glow, text } from '../styles/theme'
 
 export default function RebalancePage() {
   const [rebalanceData, setRebalanceData] = useState<RebalanceSetting[]>([])
@@ -74,10 +75,10 @@ export default function RebalancePage() {
     }
   }
 
-  if (loading) return <div className="flex justify-center items-center min-h-[60vh] text-purple-400">Calculando pesos de cartera...</div>
+  if (loading) return <div className="flex justify-center items-center min-h-[60vh] text-[#8B8578]">Calculando pesos de cartera...</div>
 
   return (
-    <div className="space-y-8">
+    <div className={layout.pageStack}>
       {/* Toast Notification */}
       {toast && (
         <Toast 
@@ -87,53 +88,46 @@ export default function RebalancePage() {
         />
       )}
       {/* Header con gradiente */}
-      <div className="relative rounded-2xl p-8 bg-gradient-to-br from-[#15102a] to-[#0f0a20] border border-purple-500/40 shadow-lg overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-32 h-32 -translate-y-16 bg-purple-600/20 rounded-full blur-2xl -z-10"></div>
+      <div className={surface.heroPanel}>
+        <div className={glow.orbTop}></div>
         
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Rebalanceo de Cartera</h1>
-            <p className="text-gray-400">Distribuye tu capital actual y futuro estratégicamente</p>
+            <h1 className={text.pageTitle}>Rebalanceo de Cartera</h1>
+            <p className={text.pageSubtitle}>Distribuye tu capital actual y futuro estratégicamente</p>
           </div>
           <div className="text-right">
-             <div className={`text-2xl font-mono font-bold ${isPercentageValid ? 'text-green-400' : 'text-red-400'}`}>
+             <div className={`text-2xl font-mono font-bold ${isPercentageValid ? 'text-[#6B8F71]' : 'text-[#C25B3F]'}`}>
                 {totalTargetPct.toFixed(2)}% / 100%
              </div>
-             <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">Suma Objetivo</p>
+             <p className="text-xs text-[#B0A99C] uppercase tracking-widest mt-1">Suma Objetivo</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className={layout.gridKpi3}>
           <KPICard 
             title="Valor Portafolio" 
             value={`€ ${totalCurrentValue.toLocaleString('es-ES', { minimumFractionDigits: 2 })}`} 
-            icon={<Wallet className="text-purple-400" />} 
+            icon={<Wallet className="text-[#4A6FA5]" />} 
           />
           {/* KPI 2: Input de DCA */}
           <div className="
               relative rounded-xl p-6
-              bg-gradient-to-br from-[#0a0e1f] to-[#070a18]
-              border border-white/5
-              shadow-2xl
-              before:absolute before:inset-0 before:rounded-xl before:p-[1px] 
-              before:bg-gradient-to-r 
-              before:from-emerald-500/30 before:via-emerald-500/10 before:to-teal-500/30
-              before:-z-10
-              after:absolute after:inset-0 after:rounded-xl
-              after:bg-gradient-to-br after:from-emerald-500/5 after:to-teal-500/3
-              after:-z-20
+              bg-white
+              border border-[#E5DED3]
+              shadow-sm
               transition-all duration-300
-              hover:shadow-emerald-900/10
+              hover:shadow-md
             ">
               <div className="relative z-10">
-                <p className="text-sm text-gray-400 mb-1">Monto DCA a Invertir</p>
+                <p className="text-sm text-[#8B8578] mb-1">Monto DCA a Invertir</p>
                 <div className="flex items-center gap-3">
-                  <div className="text-2xl"><TrendingUp className="text-emerald-400" /></div>
-                  <div className="flex items-center text-3xl font-bold text-white w-full">
-                    <span className="text-emerald-400 mr-1">€</span>
+                  <div className="text-2xl"><TrendingUp className="text-[#6B8F71]" /></div>
+                  <div className="flex items-center text-3xl font-bold text-[#2C2C2C] w-full">
+                    <span className="text-[#6B8F71] mr-1">€</span>
                     <input 
                       type="number" 
-                      className="bg-transparent text-white font-bold w-full focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="bg-transparent text-[#2C2C2C] font-bold w-full focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       value={dcaAmount || ''}
                       placeholder="0.00"
                       onChange={(e) => setDcaAmount(parseFloat(e.target.value) || 0)}
@@ -141,23 +135,19 @@ export default function RebalancePage() {
                   </div>
                 </div>
               </div>
-              
-              {/* Brillos decorativos del clon */}
-              <div className="absolute top-0 left-0 w-20 h-20 -translate-x-10 -translate-y-10 bg-emerald-500/10 rounded-full blur-xl -z-10"></div>
-              <div className="absolute bottom-0 right-0 w-20 h-20 translate-x-10 translate-y-10 bg-teal-500/10 rounded-full blur-xl -z-10"></div>
             </div>
           <KPICard 
             title="Total tras DCA" 
             value={`€ ${totalFutureValue.toLocaleString('es-ES', { minimumFractionDigits: 2 })}`}
-            icon={<Scale className="text-blue-400" />} 
+            icon={<Scale className="text-[#C4A35A]" />} 
           />
         </div>
       </div>
 
       {/* Tabla */}
-      <div className="rounded-xl bg-[#11162A] border border-white/10 overflow-hidden">
+      <div className={surface.tableContainer}>
         <table className="w-full text-left">
-          <thead className="bg-[#0B0F1A] border-b border-white/10 text-gray-400 text-xs uppercase tracking-widest ">
+          <thead className="bg-[#FAF7F0] border-b border-[#E5DED3] text-[#8B8578] text-xs uppercase tracking-widest ">
             <tr>
               <th className="p-4">Activo</th>
               <th className="p-4">Ticker / ISIN</th>
@@ -178,10 +168,10 @@ export default function RebalancePage() {
               const buyAmount = Math.max(0, targetTotalValue - currentData.total_value)
 
               return (
-                <tr key={asset.asset_id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
-                  <td className="p-4 font-semibold text-white">{asset.asset_name}</td>
+                <tr key={asset.asset_id} className="border-b border-[#F0EBE3] hover:bg-[#FAF7F0]/60 transition-colors group">
+                  <td className="p-4 font-semibold text-[#2C2C2C]">{asset.asset_name}</td>
                   <td className="p-4">
-                    <span className="px-2 py-1 rounded bg-[#0B0F1A] border border-white/5 text-xs text-gray-400 font-mono">
+                    <span className="px-2 py-1 rounded bg-[#FAF7F0] border border-[#E5DED3] text-xs text-[#8B8578] font-mono">
                       {currentData.identifier}
                     </span>
                   </td>
@@ -189,7 +179,7 @@ export default function RebalancePage() {
                     € {currentData.total_value.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
                   </td>
                   <td className="p-4 text-center">
-                    <span className="text-gray-500 text-sm">{currentWeight.toFixed(2)}%</span>
+                    <span className="text-[#8B8578] text-sm">{currentWeight.toFixed(2)}%</span>
                   </td>
                   <td className="p-4">
                     <div className="flex justify-center items-center gap-2">
@@ -197,13 +187,13 @@ export default function RebalancePage() {
                         type="number"
                         value={asset.target_percentage}
                         onChange={(e) => handlePercentageChange(asset.asset_id, e.target.value)}
-                        className="w-16 px-2 py-1 bg-[#0B0F1A] border border-white/10 rounded text-center text-white focus:border-purple-500 outline-none font-bold [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        className="w-16 px-2 py-1 bg-[#FAF7F0] border border-[#E5DED3] rounded text-center text-[#2C2C2C] focus:border-[#4A6FA5] outline-none font-bold [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       />
-                      <span className="text-gray-600 text-xs">%</span>
+                      <span className="text-[#B0A99C] text-xs">%</span>
                     </div>
                   </td>
                   <td className="p-4 text-right">
-                    <div className="flex items-center justify-end gap-2 text-green-400 font-bold font-mono">
+                    <div className="flex items-center justify-end gap-2 text-[#6B8F71] font-bold font-mono">
                       € {buyAmount.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
                       <ArrowRight className="w-3 h-3 opacity-30" />
                     </div>
@@ -215,8 +205,8 @@ export default function RebalancePage() {
         </table>
 
         {/* Footer */}
-        <div className="p-6 bg-[#0B0F1A]/50 flex justify-between items-center">
-          <div className="flex items-center gap-2 text-xs text-gray-500">
+        <div className="p-6 bg-[#FAF7F0] flex justify-between items-center">
+          <div className="flex items-center gap-2 text-xs text-[#8B8578]">
             <Info className="w-4 h-4" />
             <span>La compra sugerida prioriza alcanzar el peso objetivo usando el nuevo capital del DCA.</span>
           </div>
@@ -226,8 +216,8 @@ export default function RebalancePage() {
             disabled={!isPercentageValid || isSaving}
             className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold transition-all
               ${isPercentageValid && !isSaving 
-                ? 'bg-purple-600 hover:bg-purple-500 shadow-lg shadow-purple-900/20' 
-                : 'bg-gray-800 text-gray-500 cursor-not-allowed'}
+                ? 'bg-[#2C2C2C] hover:bg-[#3D3D3D] text-[#FAF7F0] shadow-sm' 
+                : 'bg-[#E5DED3] text-[#B0A99C] cursor-not-allowed'}
             `}
           >
             {isSaving ? 'Guardando...' : saveSuccess ? '¡Guardado!' : 'Guardar Estrategia'}

@@ -54,3 +54,22 @@ export async function getUserAssets(): Promise<Asset[]> {
         throw error;
     }
 }
+
+export interface AssetWithPrice {
+    asset_id: number;
+    name: string;
+    ticker: string | null;
+    isin: string | null;
+    type: string;
+    currency: string;
+    current_price: number;
+}
+
+export async function getAssetsWithPrices(): Promise<AssetWithPrice[]> {
+    try {
+        return await apiGet<AssetWithPrice[]>('/assets/with-prices', true);
+    } catch (error) {
+        console.error('Error fetching assets with prices:', error);
+        throw error;
+    }
+}

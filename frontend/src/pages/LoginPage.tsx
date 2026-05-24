@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TrendingUp, Shield, PieChart } from 'lucide-react';
 import { login, register } from '../services/authService';
 import { LoginCredentials } from '../types/auth';
+import { surface, text, input, button } from '../styles/theme';
 
 export default function LoginPage() {
   const [credentials, setCredentials] = useState<LoginCredentials>({
@@ -42,6 +43,11 @@ const handleRegister = async (e: React.FormEvent) => {
     return;
   }
 
+  if (registerData.password.length < 8) {
+    setError('La contraseña debe tener al menos 8 caracteres');
+    return;
+  }
+
   setLoading(true);
   try {
     await register({
@@ -57,55 +63,54 @@ const handleRegister = async (e: React.FormEvent) => {
   }
 };
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0B0F1A] to-[#15102a] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         
         {/* Columna izquierda - Info */}
         <div className="space-y-8">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-purple-500/10">
-              {/* <TrendingUp className="w-8 h-8 text-white" /> */}
-              <img src="../public/favicon-32x32.png" alt="Sprout Logo" className="w-8 h-8 object-contain" />
+            <div className="p-2 rounded-lg bg-[#E5DED3]">
+              <img src="/favicon-32x32.png" alt="Sprout Logo" className="w-8 h-8 object-contain" />
             </div>
-            <h1 className="text-3xl font-bold text-white">Sprout - Financial Hub</h1>
+            <h1 className="text-3xl font-bold text-[#2C2C2C]">Sprout - Financial Hub</h1>
           </div>
 
-          <h2 className="text-4xl font-bold text-white leading-tight">
+          <h2 className="text-4xl font-bold text-[#2C2C2C] leading-tight">
             Gestiona tu portfolio<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-violet-400">
+            <span className="text-[#4A6FA5]">
               de forma inteligente
             </span>
           </h2>
 
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-purple-500/10">
-                <PieChart className="w-5 h-5 text-purple-400" />
+              <div className="p-2 rounded-full bg-[#4A6FA5]/10">
+                <PieChart className="w-5 h-5 text-[#4A6FA5]" />
               </div>
-              <p className="text-gray-300">
+              <p className="text-[#5A5549]">
                 Visualización avanzada de tu distribución de activos
               </p>  
             </div>
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-violet-500/10">
-                <TrendingUp className="w-5 h-5 text-violet-400" />
+              <div className="p-2 rounded-full bg-[#6B8F71]/10">
+                <TrendingUp className="w-5 h-5 text-[#6B8F71]" />
               </div>
-              <p className="text-gray-300">
+              <p className="text-[#5A5549]">
                 Seguimiento de rendimiento en tiempo real
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-purple-500/10">
-                <Shield className="w-5 h-5 text-purple-400" />
+              <div className="p-2 rounded-full bg-[#C4A35A]/10">
+                <Shield className="w-5 h-5 text-[#C4A35A]" />
               </div>
-              <p className="text-gray-300">
+              <p className="text-[#5A5549]">
                 Seguridad bancaria con cifrado de extremo a extremo
               </p>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-white/10">
-            <p className="text-sm text-gray-400">
+          <div className="pt-6 border-t border-[#E5DED3]">
+            <p className="text-sm text-[#8B8578]">
               Únete a miles de inversores que ya gestionan sus portfolios con nosotros
             </p>
           </div>
@@ -113,74 +118,57 @@ const handleRegister = async (e: React.FormEvent) => {
 
         {/* Columna derecha - Formulario */}
         <div className="relative">
-          <div className="
-            relative rounded-2xl p-8
-            bg-gradient-to-br from-[#15102a] to-[#0f0a20]
-            border border-purple-500/40
-            shadow-2xl
-            before:absolute before:inset-0 before:rounded-2xl before:p-[1px]
-            before:bg-gradient-to-r 
-            before:from-purple-600/60 before:to-violet-600/60
-            before:-z-10
-            after:absolute after:inset-0 after:rounded-2xl after:m-[0.5px]
-            after:bg-gradient-to-br after:from-[#15102a] after:to-[#0f0a20]
-            after:-z-20
-          ">
-            {/* Efectos visuales */}
-            <div className="absolute top-0 left-1/4 w-32 h-32 -translate-y-16 
-              bg-purple-600/20 rounded-full blur-2xl -z-10"></div>
-            <div className="absolute bottom-0 right-1/4 w-32 h-32 translate-y-16 
-              bg-violet-600/20 rounded-full blur-2xl -z-10"></div>
+          <div className={surface.heroPanel + ' shadow-md'}>
             {error && (
-              <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-sm">
+              <div className="mb-4 p-3 rounded-lg bg-[#C25B3F]/10 border border-[#C25B3F]/30 text-[#C25B3F] text-sm">
                 {error}
               </div>
             )}
             {showRegister ? (
               <>
-                <h3 className="text-2xl font-bold text-white mb-2">Crear cuenta</h3>
-                <p className="text-gray-400 mb-6">
+                <h3 className="text-2xl font-bold text-[#2C2C2C] mb-2">Crear cuenta</h3>
+                <p className="text-[#8B8578] mb-6">
                   Regístrate para empezar a gestionar tu portfolio
                 </p>
 
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className={text.fieldLabel}>
                       Email
                     </label>
                     <input
                       type="email"
                       value={registerData.email}
                       onChange={(e) => setRegisterData({...registerData, email: e.target.value})}
-                      className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition"
+                      className={input.glass}
                       placeholder="tu@email.com"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className={text.fieldLabel}>
                       Contraseña
                     </label>
                     <input
                       type="password"
                       value={registerData.password}
                       onChange={(e) => setRegisterData({...registerData, password: e.target.value})}
-                      className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition"
+                      className={input.glass}
                       placeholder="••••••••"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className={text.fieldLabel}>
                       Confirmar contraseña
                     </label>
                     <input
                       type="password"
                       value={registerData.confirmPassword}
                       onChange={(e) => setRegisterData({...registerData, confirmPassword: e.target.value})}
-                      className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition"
+                      className={input.glass}
                       placeholder="••••••••"
                       required
                     />
@@ -189,18 +177,18 @@ const handleRegister = async (e: React.FormEvent) => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3 px-4 rounded-lg bg-gradient-to-r from-purple-600 to-violet-600 text-white font-medium hover:opacity-90 transition"
+                    className={button.primary}
                   >
                     {loading ? 'Creando cuenta...' : 'Crear cuenta'}
                   </button>
                 </form>
 
-                <div className="mt-6 pt-6 border-t border-white/10">
-                  <p className="text-sm text-gray-400 text-center">
+                <div className="mt-6 pt-6 border-t border-[#E5DED3]">
+                  <p className="text-sm text-[#8B8578] text-center">
                     ¿Ya tienes cuenta?{' '}
                     <button
                       onClick={() => setShowRegister(false)}
-                      className="text-purple-400 hover:text-purple-300 font-medium"
+                      className="text-[#4A6FA5] hover:text-[#3A5F95] font-medium"
                     >
                       Iniciar sesión
                     </button>
@@ -209,14 +197,14 @@ const handleRegister = async (e: React.FormEvent) => {
               </>
             ) : (
               <>
-                <h3 className="text-2xl font-bold text-white mb-2">Iniciar sesión</h3>
-                <p className="text-gray-400 mb-6">
+                <h3 className="text-2xl font-bold text-[#2C2C2C] mb-2">Iniciar sesión</h3>
+                <p className="text-[#8B8578] mb-6">
                   Accede a tu dashboard personalizado
                 </p>
 
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className={text.fieldLabel}>
                       Email
                     </label>
                     <input
@@ -226,7 +214,7 @@ const handleRegister = async (e: React.FormEvent) => {
                         ...credentials,
                         email: e.target.value
                       })}
-                      className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition"
+                      className={input.glass}
                       placeholder="tu@email.com"
                       required
                       disabled={loading}
@@ -234,7 +222,7 @@ const handleRegister = async (e: React.FormEvent) => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className={text.fieldLabel}>
                       Contraseña
                     </label>
                     <input
@@ -244,7 +232,7 @@ const handleRegister = async (e: React.FormEvent) => {
                         ...credentials,
                         password: e.target.value
                       })}
-                      className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition"
+                      className={input.glass}
                       placeholder="••••••••"
                       required
                       disabled={loading}
@@ -252,16 +240,16 @@ const handleRegister = async (e: React.FormEvent) => {
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
-                    <label className="flex items-center gap-2 text-gray-300">
+                    <label className="flex items-center gap-2 text-[#5A5549]">
                       <input
                         type="checkbox"
-                        className="rounded bg-white/5 border-white/10"
+                        className="rounded bg-[#FAF7F0] border-[#D5CEC2]"
                       />
                       Recordarme
                     </label>
                     <button
                       type="button"
-                      className="text-purple-400 hover:text-purple-300"
+                      className="text-[#4A6FA5] hover:text-[#3A5F95]"
                     >
                       ¿Olvidaste tu contraseña?
                     </button>
@@ -270,18 +258,18 @@ const handleRegister = async (e: React.FormEvent) => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3 px-4 rounded-lg bg-gradient-to-r from-purple-600 to-violet-600 text-white font-medium hover:opacity-90 disabled:opacity-50 transition"
+                    className={button.primary}
                   >
                     {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
                   </button>
                 </form>
 
-                <div className="mt-6 pt-6 border-t border-white/10">
-                  <p className="text-sm text-gray-400 text-center">
+                <div className="mt-6 pt-6 border-t border-[#E5DED3]">
+                  <p className="text-sm text-[#8B8578] text-center">
                     ¿No tienes cuenta?{' '}
                     <button
                       onClick={() => setShowRegister(true)}
-                      className="text-purple-400 hover:text-purple-300 font-medium"
+                      className="text-[#4A6FA5] hover:text-[#3A5F95] font-medium"
                     >
                       Regístrate aquí
                     </button>

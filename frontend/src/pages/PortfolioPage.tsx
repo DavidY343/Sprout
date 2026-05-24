@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import KPICard from '../components/KPICard'
 import { getAccountsWithBalance } from '../services/accountService'
 import { AccountWithBalance } from '../types/account'
-import { PieChart, TrendingUp, Wallet } from 'lucide-react'
+import { PieChart, TrendingUp, Wallet, Menu, X, BarChart3, Settings, LayoutGrid } from 'lucide-react'
 import AccountsDonut from '../components/donuts/AccountsDonut'
 import AccountSelector from '../components/selectors/AccountSelector'
 import AssetsDonut from '../components/donuts/AssetsDonut'
@@ -12,27 +12,31 @@ import AssetsTreemap from '../components/AssetTreemap'
 import PortfolioHistoryChart from '../components/PortfolioHistoryChart'
 import { getPerformanceMetrics } from '../services/performanceService'
 import { PerformanceResponse } from '../types/performance'
+import { layout, surface, glow, text, button } from '../styles/theme'
+import AccountCreationForm from '../components/form/AccountCreationForm'
+import AssetCreationForm from '../components/form/AssetCreationForm'
 
+type View = 'resumen' | 'distribucion' | 'mapa' | 'config'
 
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(value)
-}
+const NAV_ITEMS: { id: View; label: string; icon: React.ReactNode }[] = [
+  { id: 'resumen', label: 'Resumen', icon: <Wallet className="w-5 h-5" /> },
+  { id: 'distribucion', label: 'Distribución', icon: <PieChart className="w-5 h-5" /> },
+  { id: 'mapa', label: 'Mapa', icon: <LayoutGrid className="w-5 h-5" /> },
+  { id: 'config', label: 'Configuración', icon: <Settings className="w-5 h-5" /> },
+]
 
 export default function PortfolioPage() {
-
   const [accounts, setAccounts] = useState<AccountWithBalance[]>([])
   const [selectedAccountId, setSelectedAccountId] = useState<number | 'all'>('all')
   const [selectedAssetAccountId, setSelectedAssetAccountId] = useState<number | 'all'>('all')
   const [groupBy, setGroupBy] = useState<'type' | 'theme' | 'asset'>('type')
-  const [historyAccountId, setHistoryAccountId] = useState<number | 'all'>('all');
+  const [historyAccountId, setHistoryAccountId] = useState<number | 'all'>('all')
   const [metrics, setMetrics] = useState<PerformanceResponse | null>(null)
   const [loading, setLoading] = useState(true)
-  useEffect(() => {
-      loadAccounts()
-  }, []);
+  const [view, setView] = useState<View>('resumen')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => { loadAccounts() }, [])
 
   const loadAccounts = async () => {
     try {
@@ -41,217 +45,178 @@ export default function PortfolioPage() {
       setAccounts(data)
       const metricsData = await getPerformanceMetrics()
       setMetrics(metricsData)
-    } catch (error) {
-      console.error('Error al obtener cuentas:', error)
+    } catch {
       setAccounts([])
     } finally {
       setLoading(false)
     }
   }
-  const totalPortfolio = accounts.reduce(
-    (sum, acc) => sum + acc.total_value,
-    0
-  )
 
-  const totalInvested = accounts.reduce(
-    (sum, acc) => sum + acc.invested_value,
-    0
-  )
-
-  const totalCash = accounts.reduce(
-    (sum, acc) => sum + acc.cash_balance,
-    0
-  )
-
-  // Calcular rendimiento
+  const totalPortfolio = accounts.reduce((s, a) => s + a.total_value, 0)
+  const totalInvested = accounts.reduce((s, a) => s + a.invested_value, 0)
+  const totalCash = accounts.reduce((s, a) => s + a.cash_balance, 0)
   const monthlyPerformance = metrics?.month?.pct || 0
   const ytdPerformance = metrics?.ytd?.pct || 0
   const totalPerformance = metrics?.total?.pct || 0
   const threeMonthsPerformance = metrics?.three_months?.pct || 0
 
+  const handleNav = (v: View) => { setView(v); setSidebarOpen(false) }
+
   return (
-    <div className="space-y-8">
-      <div className="
-      space-y-8
-      relative rounded-2xl p-8
-      bg-gradient-to-br from-[#15102a] to-[#0f0a20]  /* Más oscuro */
-      border border-purple-500/40  /* Borde muy sutil */
-      shadow-lg
-      before:absolute before:inset-0 before:rounded-2xl before:p-[1px]  /* Línea muy fina */
-      before:bg-gradient-to-r 
-      before:from-purple-600/60 before:to-violet-600/60  /* Colores tenues con transparencia */
-      before:-z-10
-      after:absolute after:inset-0 after:rounded-2xl after:m-[0.5px]
-      after:bg-gradient-to-br after:from-[#15102a] after:to-[#0f0a20]
-      after:-z-20
-    ">
-      <div className="absolute top-0 left-1/4 w-32 h-32 -translate-y-16 
-        bg-purple-600/20 rounded-full blur-2xl -z-10"></div>
-      <div className="absolute bottom-0 right-1/4 w-32 h-32 translate-y-16 
-        bg-violet-600/20 rounded-full blur-2xl -z-10"></div>
+    <div className="relative">
+      {/* Sidebar overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setSidebarOpen(false)} />
+      )}
 
-        {/* MAIN KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <KPICard
-            title="Total Portfolio"
-            value={`€ ${totalPortfolio.toFixed(2)}`}
-            icon={<Wallet className="w-8 h-8" />}
-            
-          />
-          <KPICard
-            title="Total Invertido"
-            value={`€ ${totalInvested.toFixed(2)}`}
-            icon={<TrendingUp className="w-8 h-8" />}
-          />
-          <KPICard
-            title="Efectivo"
-            value={`€ ${totalCash.toFixed(2)}`}
-            icon={<PieChart className="w-8 h-8" />}
-          />
+      {/* Sidebar drawer */}
+      <div className={`fixed top-0 left-0 h-full w-56 bg-[#2C2C2C] border-r border-[#3D3D3D] z-50 transform transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center justify-between p-4 border-b border-[#3D3D3D]">
+          <span className="text-sm font-semibold text-[#FAF7F0] tracking-wide">Dashboard</span>
+          <button onClick={() => setSidebarOpen(false)} className="p-1 text-[#B0A99C] hover:text-[#FAF7F0] cursor-pointer">
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        {/* Performance KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KPICard 
-            title="1 Mes" 
-            value={`${monthlyPerformance > 0 ? '+' : ''}${monthlyPerformance.toFixed(2)}%`}
-            subtitle={`€ ${(monthlyPerformance * totalInvested / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-            positive={monthlyPerformance > 0}
-          />
-          <KPICard 
-          title="3 Meses" 
-          value={`${threeMonthsPerformance > 0 ? '+' : ''}${threeMonthsPerformance.toFixed(2)}%`}
-          subtitle={`€ ${(threeMonthsPerformance * totalInvested / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          positive={threeMonthsPerformance > 0}
-           />
-          <KPICard 
-            title="YTD" 
-            value={`${ytdPerformance > 0 ? '+' : ''}${ytdPerformance.toFixed(2)}%`}
-            subtitle={`€ ${(ytdPerformance * totalInvested / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-            positive={ytdPerformance > 0}
-          />
-          <KPICard 
-            title="Total" 
-            value={`${totalPerformance > 0 ? '+' : ''}${totalPerformance.toFixed(2)}%`}
-            subtitle={`€ ${(totalPerformance * totalInvested / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-            positive={totalPerformance > 0}
-          />
-        </div>
-      </div>
-      {/* Donuts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        {/* Donut izquierda */}
-        <div className="rounded-xl bg-[#11162A] border border-white/10 p-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-white">
-              Distribución de cuentas
-            </h2>
-            <div className="flex items-center">
-              <AccountSelector
-                accounts={accounts}
-                selected={selectedAccountId}
-                onChange={setSelectedAccountId}
-              />
-            </div>
-          </div>
-          <div className="flex justify-center items-center">
-            <AccountsDonut
-              accounts={accounts}
-              selectedAccountId={selectedAccountId}
-            />
-          </div>
-        </div>
-
-        {/* Donut derecha */}
-        <div className="rounded-xl bg-[#11162A] border border-white/10 p-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-white">
-              Distribución de activos
-            </h2>
-            <div className="flex items-center gap-4">
-              <AccountSelector
-                accounts={accounts}
-                selected={selectedAssetAccountId}
-                onChange={setSelectedAssetAccountId}
-              />
-              
-              <GroupBySelector
-                value={groupBy}
-                onChange={setGroupBy}
-              />
-            </div>
-          </div>
-          <div className="flex justify-center items-center">
-            <AssetsDonut
-              selectedAccountId={selectedAssetAccountId}
-              groupBy={groupBy}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Dashboard de Activos (Treemap) */}
-      <div className="rounded-xl bg-[#11162A] border border-white/10 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-semibold text-white">Mapa de Activos</h2>
-            <p className="text-sm text-gray-400">Tamaño por valor total | Color por rendimiento</p>
-          </div>
-        </div>
-          <AssetsTreemap />
-      </div>
-
-      {/* Line chart */}
-      <div className="rounded-xl bg-[#11162A] border border-white/10 p-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-xl font-semibold text-white">Evolución del Patrimonio</h2>
-            <p className="text-sm text-gray-400">Valor total de la cartera en el tiempo</p>
-          </div>
-
-          {/* Selector de cuenta tipo botones */}
-          <div className="flex p-1 bg-black/20 rounded-lg border border-white/5 self-start">
-            <button
-              onClick={() => setHistoryAccountId('all')}
-              className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
-                historyAccountId === 'all' 
-                ? 'bg-purple-600 text-white shadow-lg' 
-                : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              General
+        <nav className="p-3 space-y-1">
+          {NAV_ITEMS.map(item => (
+            <button key={item.id} onClick={() => handleNav(item.id)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition cursor-pointer ${view === item.id ? 'bg-[#4A6FA5]/20 text-[#4A6FA5]' : 'text-[#B0A99C] hover:text-[#FAF7F0] hover:bg-[#3D3D3D]'}`}>
+              {item.icon}
+              {item.label}
             </button>
-            {accounts.map((acc) => (
-              <button
-                key={acc.account_id}
-                onClick={() => setHistoryAccountId(acc.account_id)}
-                className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
-                  historyAccountId === acc.account_id 
-                  ? 'bg-purple-600 text-white shadow-lg' 
-                  : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                {acc.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="h-80 w-full">
-          <PortfolioHistoryChart accountId={historyAccountId} />
-        </div>
-      </div>
-      {/* Tabla */}
-      <div className="rounded-xl bg-[#11162A] border border-white/10 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-semibold text-white">Listado de Activos</h2>
-            <p className="text-sm text-gray-400">Detalle individual, pesos de cartera y beneficio acumulado</p>
-          </div>
-        </div>
-        <AssetsTable />
+          ))}
+        </nav>
       </div>
 
+      {/* Main content */}
+      <div className={layout.pageStack}>
+        {/* Hamburger button */}
+        <button onClick={() => setSidebarOpen(true)}
+          className="self-start p-2 rounded-lg border border-[#E5DED3] text-[#8B8578] hover:text-[#2C2C2C] hover:border-[#D5CEC2] transition cursor-pointer">
+          <Menu className="w-5 h-5" />
+        </button>
+
+        {/* ============ VIEW: RESUMEN ============ */}
+        {view === 'resumen' && (
+          <>
+            <div className={`${layout.pageStack} ${surface.heroPanel}`}>
+              <div className={glow.orbTop}></div>
+              <div className={glow.orbBottom}></div>
+              <div className={layout.gridKpi3}>
+                <KPICard title="Total Portfolio" value={`€ ${totalPortfolio.toFixed(2)}`} icon={<Wallet className="w-8 h-8" />} />
+                <KPICard title="Total Invertido" value={`€ ${totalInvested.toFixed(2)}`} icon={<TrendingUp className="w-8 h-8" />} />
+                <KPICard title="Efectivo" value={`€ ${totalCash.toFixed(2)}`} icon={<PieChart className="w-8 h-8" />} />
+              </div>
+              <div className={layout.gridKpi4}>
+                <KPICard title="1 Mes"
+                  value={`${monthlyPerformance > 0 ? '+' : ''}${monthlyPerformance.toFixed(2)}%`}
+                  subtitle={`€ ${(monthlyPerformance * totalInvested / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  positive={monthlyPerformance > 0} />
+                <KPICard title="3 Meses"
+                  value={`${threeMonthsPerformance > 0 ? '+' : ''}${threeMonthsPerformance.toFixed(2)}%`}
+                  subtitle={`€ ${(threeMonthsPerformance * totalInvested / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  positive={threeMonthsPerformance > 0} />
+                <KPICard title="YTD"
+                  value={`${ytdPerformance > 0 ? '+' : ''}${ytdPerformance.toFixed(2)}%`}
+                  subtitle={`€ ${(ytdPerformance * totalInvested / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  positive={ytdPerformance > 0} />
+                <KPICard title="Total"
+                  value={`${totalPerformance > 0 ? '+' : ''}${totalPerformance.toFixed(2)}%`}
+                  subtitle={`€ ${(totalPerformance * totalInvested / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  positive={totalPerformance > 0} />
+              </div>
+            </div>
+
+            {/* History chart */}
+            <div className={surface.card}>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h2 className={text.sectionTitle}>Evolución del Patrimonio</h2>
+                  <p className={text.sectionDesc}>Valor total de la cartera en el tiempo</p>
+                </div>
+                <div className="flex p-1 bg-[#FAF7F0] rounded-lg border border-[#E5DED3] self-start">
+                  <button onClick={() => setHistoryAccountId('all')}
+                    className={historyAccountId === 'all' ? button.tabActive : button.tabInactive}>General</button>
+                  {accounts.map(acc => (
+                    <button key={acc.account_id} onClick={() => setHistoryAccountId(acc.account_id)}
+                      className={historyAccountId === acc.account_id ? button.tabActive : button.tabInactive}>{acc.name}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="h-80 w-full">
+                <PortfolioHistoryChart accountId={historyAccountId} />
+              </div>
+            </div>
+
+            {/* Assets table */}
+            <div className={surface.card}>
+              <div className="mb-6">
+                <h2 className={text.sectionTitle}>Listado de Activos</h2>
+                <p className={text.sectionDesc}>Detalle individual, pesos de cartera y beneficio acumulado</p>
+              </div>
+              <AssetsTable />
+            </div>
+          </>
+        )}
+
+        {/* ============ VIEW: DISTRIBUCIÓN ============ */}
+        {view === 'distribucion' && (
+          <div className={layout.grid2}>
+            <div className={surface.cardSm}>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className={text.sectionTitle}>Distribución de cuentas</h2>
+                <AccountSelector accounts={accounts} selected={selectedAccountId} onChange={setSelectedAccountId} />
+              </div>
+              <div className="flex justify-center items-center">
+                <AccountsDonut accounts={accounts} selectedAccountId={selectedAccountId} />
+              </div>
+            </div>
+            <div className={surface.cardSm}>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className={text.sectionTitle}>Distribución de activos</h2>
+                <div className="flex items-center gap-4">
+                  <AccountSelector accounts={accounts} selected={selectedAssetAccountId} onChange={setSelectedAssetAccountId} />
+                  <GroupBySelector value={groupBy} onChange={setGroupBy} />
+                </div>
+              </div>
+              <div className="flex justify-center items-center">
+                <AssetsDonut selectedAccountId={selectedAssetAccountId} groupBy={groupBy} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ============ VIEW: MAPA ============ */}
+        {view === 'mapa' && (
+          <div className={surface.card}>
+            <div className="mb-6">
+              <h2 className={text.sectionTitle}>Mapa de Activos</h2>
+              <p className={text.sectionDesc}>Tamaño por valor total | Color por rendimiento</p>
+            </div>
+            <AssetsTreemap />
+          </div>
+        )}
+
+        {/* ============ VIEW: CONFIGURACIÓN ============ */}
+        {view === 'config' && (
+          <div className="space-y-6">
+            <div className={surface.card}>
+              <div className="mb-5">
+                <h2 className={text.sectionTitle}>Cuentas</h2>
+                <p className={text.sectionDesc}>Añade tus cuentas de inversión (Trade Republic, MyInvestor, etc.)</p>
+              </div>
+              <AccountCreationForm onSuccess={() => loadAccounts()} />
+            </div>
+            <div className={surface.card}>
+              <div className="mb-5">
+                <h2 className={text.sectionTitle}>Activos</h2>
+                <p className={text.sectionDesc}>Añade activos con su ticker de Yahoo Finance. El worker empezará a traer precios automáticamente.</p>
+              </div>
+              <AssetCreationForm />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

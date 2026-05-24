@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Plus, Loader2, Calendar, CreditCard } from 'lucide-react';
+import { Loader2, Check } from 'lucide-react';
 import { createTransaction } from '../../services/transactionService';
 import { getUserAccounts } from '../../services/accountService';
 import { Account } from '../../types/account';
 import { TransactionCreate } from '../../types/transaction';
 import Toast from '../Toast';
+import { surface } from '../../styles/theme';
 
 export default function AddTransactionForm({ onSuccess }: { onSuccess?: () => void }) {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -12,104 +13,76 @@ export default function AddTransactionForm({ onSuccess }: { onSuccess?: () => vo
   const [toast, setToast] = useState<{message: string, type: 'error' | 'success'} | null>(null);
 
   const [formData, setFormData] = useState<TransactionCreate>({
-    account_id: 0,
-    category: 'Depósito',
+    account_id: 0, category: 'Depósito',
     date: new Date().toISOString().split('T')[0],
-    amount: 0,
-    type: 'income',
-    description: ''
+    amount: 0, type: 'income', description: ''
   });
 
   useEffect(() => {
     getUserAccounts().then(data => {
       setAccounts(data);
-      if (data.length > 0) setFormData(prev => ({ ...prev, account_id: data[0].account_id }));
+      if (data.length > 0) setFormData(p => ({ ...p, account_id: data[0].account_id }));
     });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.account_id || formData.amount <= 0) {
-      setToast({ message: 'Datos incompletos', type: 'error' });
-      return;
-    }
-
+    if (!formData.account_id || formData.amount <= 0) { setToast({ message: 'Datos incompletos', type: 'error' }); return }
     try {
       setLoading(true);
       await createTransaction(formData);
-      setToast({ message: 'Transacción registrada', type: 'success' });
-      setFormData({ ...formData, amount: 0, description: '' });
-      setTimeout(() => {if (onSuccess) onSuccess()}, 1000);
-    } catch (error) {
-      setToast({ message: 'Error al registrar', type: 'error' });
-    } finally { setLoading(false); }
+      setToast({ message: 'Hecho', type: 'success' });
+      setFormData(p => ({ ...p, amount: 0, description: '' }));
+      setTimeout(() => { if (onSuccess) onSuccess() }, 800);
+    } catch { setToast({ message: 'Error al registrar', type: 'error' }) }
+    finally { setLoading(false) }
   };
 
+  const isIncome = formData.type === 'income';
+
   return (
-    <div className="rounded-xl bg-[#11162A] border border-white/10 p-6">
-      <h2 className="text-xl font-semibold mb-4">Registrar Movimiento</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Cuenta */}
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">Cuenta</label>
-            <select 
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-white"
-              value={formData.account_id}
-              onChange={e => setFormData({...formData, account_id: Number(e.target.value)})}
-            >
-              {accounts.map(a => <option key={a.account_id} value={a.account_id}>{a.name}</option>)}
-            </select>
-          </div>
+    <div className={surface.card}>
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2 text-sm text-[#5A5549]">
+        {/* Tipo */}
+        <button type="button" onClick={() => setFormData(p => ({ ...p, type: isIncome ? 'expense' : 'income' }))}
+          className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${isIncome ? 'bg-[#6B8F71]/15 text-[#6B8F71] border border-[#6B8F71]/30' : 'bg-[#C25B3F]/15 text-[#C25B3F] border border-[#C25B3F]/30'}`}>
+          {isIncome ? 'Ingreso' : 'Gasto'}
+        </button>
 
-          {/* Tipo */}
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">Tipo</label>
-            <div className="flex gap-2 bg-gray-800 p-1 rounded-lg border border-gray-700">
-              <button type="button" onClick={() => setFormData({...formData, type: 'income'})}
-                className={`flex-1 py-1 rounded transition-colors ${formData.type === 'income' ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-white'}`}>Ingreso</button>
-              <button type="button" onClick={() => setFormData({...formData, type: 'expense'})}
-                className={`flex-1 py-1 rounded transition-colors ${formData.type === 'expense' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'}`}>Gasto</button>
-            </div>
-          </div>
+        <span className="text-[#B0A99C]">de</span>
 
-          {/* Fecha (NUEVO) */}
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">Fecha</label>
-            <div className="relative">
-              <input
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({...formData, date: e.target.value})}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-white [color-scheme:dark]"
-              />
-              <Calendar className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
-            </div>
-          </div>
+        {/* Monto */}
+        <span className="text-[#8B8578]">€</span>
+        <input type="number" min="0" step="any" value={formData.amount || ''}
+          onChange={e => setFormData(p => ({ ...p, amount: Number(e.target.value) }))}
+          placeholder="0.00"
+          className="w-20 bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] text-center font-mono focus:outline-none focus:border-[#4A6FA5] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
 
-          {/* Monto */}
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">Monto (€)</label>
-            <input type="number" step="any" className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-white [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" 
-              value={formData.amount} onChange={e => setFormData({...formData, amount: Number(e.target.value)})} />
-          </div>
-        </div>
+        <span className="text-[#B0A99C]">en</span>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Descripción */}
-          <div className="md:col-span-3">
-            <label className="block text-sm text-gray-400 mb-2">Descripción / Categoría</label>
-            <input type="text" className="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-white" placeholder="Ej: Ingreso ahorro mensual"
-              value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})} />
-          </div>
+        {/* Cuenta */}
+        <select value={formData.account_id} onChange={e => setFormData(p => ({ ...p, account_id: Number(e.target.value) }))}
+          className="bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] focus:outline-none focus:border-[#4A6FA5] cursor-pointer max-w-[140px] truncate">
+          {accounts.map(a => <option key={a.account_id} value={a.account_id}>{a.name}</option>)}
+        </select>
 
-          {/* Botón Guardar */}
-          <div className="flex items-end">
-            <button disabled={loading} className="w-full bg-purple-600 hover:bg-purple-700 p-2 rounded-lg flex justify-center items-center gap-2 text-white font-medium transition-all disabled:opacity-50 cursor-pointer">
-              {loading ? <Loader2 className="animate-spin" /> : <Plus size={18} />} Guardar
-            </button>
-          </div>
-        </div>
+        <span className="text-[#B0A99C]">el</span>
+
+        {/* Fecha */}
+        <input type="date" value={formData.date}
+          onChange={e => setFormData(p => ({ ...p, date: e.target.value }))}
+          className="bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] focus:outline-none focus:border-[#4A6FA5]" />
+
+        {/* Nota opcional */}
+        <input type="text" value={formData.description || ''} placeholder="nota..."
+          onChange={e => setFormData(p => ({ ...p, description: e.target.value }))}
+          className="ml-auto bg-transparent border-b border-[#D5CEC2] text-[#5A5549] focus:outline-none focus:border-[#4A6FA5] focus:text-[#2C2C2C] w-24 placeholder-[#D5CEC2]" />
+
+        {/* Submit */}
+        <button type="submit" disabled={loading}
+          className="p-2 rounded-lg bg-[#2C2C2C] hover:bg-[#3D3D3D] text-[#FAF7F0] transition disabled:opacity-50 cursor-pointer">
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+        </button>
       </form>
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     </div>

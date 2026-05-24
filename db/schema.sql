@@ -52,7 +52,7 @@ CREATE TABLE assets (
     currency CHAR(3) NOT NULL,
     theme VARCHAR(255),
     type VARCHAR(30) NOT NULL,
-    is_active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE,
 
     CONSTRAINT chk_asset_type 
         CHECK (type IN ('stock', 'crypto', 'fund', 'etf', 'bond', 'reit'))

@@ -1,377 +1,119 @@
 import { useState, useEffect } from 'react';
-import { Plus, Loader2, Calendar } from 'lucide-react';
+import { Loader2, Check } from 'lucide-react';
 import { createTrade } from '../../services/tradeService';
-import { getUserAssets } from '../../services/assetService';
+import { getAssetsWithPrices, AssetWithPrice } from '../../services/assetService';
 import { getUserAccounts } from '../../services/accountService';
-import { Asset } from '../../types/asset';
 import { Account } from '../../types/account';
 import { OperationCreate } from '../../types/trade';
-import AssetCreationForm from './AssetCreationForm';
-import AccountCreationForm from './AccountCreationForm';
 import Toast from '../Toast';
+import { surface } from '../../styles/theme';
 
 interface AddTradeFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export default function AddTradeForm({ onSuccess, onCancel }: AddTradeFormProps) {
-  const [assets, setAssets] = useState<Asset[]>([]);
+export default function AddTradeForm({ onSuccess }: AddTradeFormProps) {
+  const [assets, setAssets] = useState<AssetWithPrice[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
-  
-  const [showAssetForm, setShowAssetForm] = useState(false);
-  const [showAccountForm, setShowAccountForm] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'error' | 'success'} | null>(null);
 
-  // Datos del formulario principal
   const [formData, setFormData] = useState<OperationCreate>({
-    asset_id: 0,
-    account_id: 0,
+    asset_id: 0, account_id: 0,
     date: new Date().toISOString().split('T')[0],
-    quantity: 1,
-    price: 0,
-    fees: 0,
-    operation_type: 'buy'
+    quantity: 1, price: 0, fees: 0, operation_type: 'buy'
   });
 
-  // Cargar datos iniciales
-  useEffect(() => {
-    loadExistingData();
-  }, []);
+  useEffect(() => { loadData() }, []);
 
-  const loadExistingData = async () => {
+  const loadData = async () => {
     try {
       setLoadingData(true);
-      const [userAssets, userAccounts] = await Promise.all([
-        getUserAssets(),
-        getUserAccounts()
-      ]);
-      setAssets(userAssets);
-      setAccounts(userAccounts);
-      
-      // Seleccionar el primer asset y cuenta por defecto si existen
-      if (userAssets.length > 0) {
-        setFormData(prev => ({ ...prev, asset_id: userAssets[0].asset_id }));
-      }
-      if (userAccounts.length > 0) {
-        setFormData(prev => ({ ...prev, account_id: userAccounts[0].account_id }));
-      }
-    } catch (error) {
-      console.error('Error loading data:', error);
-    } finally {
-      setLoadingData(false);
-    }
+      const [a, c] = await Promise.all([getAssetsWithPrices(), getUserAccounts()]);
+      setAssets(a); setAccounts(c);
+      if (a.length > 0) setFormData(p => ({ ...p, asset_id: a[0].asset_id, price: a[0].current_price }));
+      if (c.length > 0) setFormData(p => ({ ...p, account_id: c[0].account_id }));
+    } catch { /* */ }
+    finally { setLoadingData(false) }
+  };
+
+  const handleAssetChange = (id: number) => {
+    const asset = assets.find(a => a.asset_id === id);
+    setFormData(p => ({ ...p, asset_id: id, price: asset?.current_price || 0 }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validaciones básicas
-    if (!formData.asset_id || !formData.account_id) {
-      setToast({ message: 'Por favor selecciona un activo y una cuenta', type: 'error' });
-      return;
-    }
-    
-    if (formData.quantity <= 0 || formData.price <= 0) {
-      setToast({ message: 'Cantidad y precio deben ser positivos', type: 'error' });
-      return;
-    }
-
-    const today = new Date().toISOString().split('T')[0];
-    const selectedDate = formData.date;
-    
-    if (selectedDate > today) {
-      setToast({ message: 'La fecha no puede ser futura', type: 'error' });
-      return;
+    if (!formData.asset_id || !formData.account_id || formData.quantity <= 0 || formData.price <= 0) {
+      setToast({ message: 'Completa todos los campos', type: 'error' }); return;
     }
     try {
       setLoading(true);
       await createTrade(formData);
-    
-      setToast({ message: 'Operación creada', type: 'success' });
-      await loadExistingData();
-
-      setFormData({
-          asset_id: assets.length > 0 ? assets[0].asset_id : 0,
-          account_id: accounts.length > 0 ? accounts[0].account_id : 0,
-          date: new Date().toISOString().split('T')[0],
-          quantity: 1,
-          price: 0,
-          fees: 0,
-          operation_type: 'buy'
-        });
-      
-        setTimeout(() => {if (onSuccess) {
-          onSuccess();
-        }}, 1000);
-        
-    } catch (error) {
-      console.error('Error creating trade:', error);
-      setToast({ message: 'Error al crear la operación', type: 'error' });
-    } finally {
-      setLoading(false);
-    }
+      setToast({ message: 'Hecho', type: 'success' });
+      setFormData(p => ({ ...p, quantity: 1, date: new Date().toISOString().split('T')[0] }));
+      setTimeout(() => { if (onSuccess) onSuccess() }, 800);
+    } catch { setToast({ message: 'Error al registrar', type: 'error' }) }
+    finally { setLoading(false) }
   };
 
-  const handleAssetCreated = (createdAsset: Asset) => {
-    setAssets(prev => [...prev, createdAsset]);
-    setFormData(prev => ({ ...prev, asset_id: createdAsset.asset_id }));
-    setShowAssetForm(false);
-    setToast({ message: 'Activo creado', type: 'success' });
-  };
+  if (loadingData) return <div className={surface.card + ' flex justify-center py-4'}><Loader2 className="w-5 h-5 animate-spin text-[#4A6FA5]" /></div>;
 
-  const handleAccountCreated = (createdAccount: Account) => {
-    setAccounts(prev => [...prev, createdAccount]);
-    setFormData(prev => ({ ...prev, account_id: createdAccount.account_id }));
-    setShowAccountForm(false);
-    setToast({ message: 'Cuenta creada', type: 'success' });
-  };
-
-  if (loadingData) {
-    return (
-      <div className="rounded-xl bg-[#11162A] border border-white/10 p-6 flex justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
-      </div>
-    );
-  }
+  const total = formData.quantity * formData.price;
+  const isBuy = formData.operation_type === 'buy';
 
   return (
-    <div className="rounded-xl bg-[#11162A] border border-white/10 p-6 mb-6">
-      <h2 className="text-xl font-semibold text-white mb-4">Añadir Nueva Operación</h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Fila 1: Asset, Cuenta y Fecha */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Selector de Asset */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Activo
-            </label>
-            <div className="flex gap-2">
-              <select
-                value={formData.asset_id}
-                onChange={(e) => setFormData(prev => ({ 
-                  ...prev, 
-                  asset_id: parseInt(e.target.value) 
-                }))}
-                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 max-w-[350px] truncate"
-                disabled={assets.length === 0}
-              >
-                {assets.length === 0 ? (
-                  <option value="0">No hay activos disponibles</option>
-                ) : (
-                  <>
-                    <option value="0">Seleccionar activo...</option>
-                    {assets.map(asset => (
-                      <option key={asset.asset_id} value={asset.asset_id}>
-                        {asset.name} {asset.ticker ? `(${asset.ticker})` : ''}
-                      </option>
-                    ))}
-                  </>
-                )}
-              </select>
-              <button
-                type="button"
-                onClick={() => setShowAssetForm(!showAssetForm)}
-                className="px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center gap-2 text-white transition-colors cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden md:inline">Nuevo</span>
-              </button>
-            </div>
-          </div>
+    <div className={surface.card}>
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2 text-sm text-[#5A5549]">
+        {/* Tipo */}
+        <button type="button" onClick={() => setFormData(p => ({ ...p, operation_type: isBuy ? 'sell' : 'buy' }))}
+          className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${isBuy ? 'bg-[#6B8F71]/15 text-[#6B8F71] border border-[#6B8F71]/30' : 'bg-[#C25B3F]/15 text-[#C25B3F] border border-[#C25B3F]/30'}`}>
+          {isBuy ? 'Comprar' : 'Vender'}
+        </button>
 
-          {/* Selector de Cuenta */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Cuenta
-            </label>
-            <div className="flex gap-2">
-              <select
-                value={formData.account_id}
-                onChange={(e) => setFormData(prev => ({ 
-                  ...prev, 
-                  account_id: parseInt(e.target.value) 
-                }))}
-                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 max-w-[350px] truncate"
-                disabled={accounts.length === 0}
-              >
-                {accounts.length === 0 ? (
-                  <option value="0">No hay cuentas disponibles</option>
-                ) : (
-                  <>
-                    <option value="0">Seleccionar cuenta...</option>
-                    {accounts.map(account => (
-                      <option key={account.account_id} value={account.account_id}>
-                        {account.name} ({account.type})
-                      </option>
-                    ))}
-                  </>
-                )}
-              </select>
-              <button
-                type="button"
-                onClick={() => setShowAccountForm(!showAccountForm)}
-                className="px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center gap-2 text-white transition-colors cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden md:inline">Nueva</span>
-              </button>
-            </div>
-          </div>
+        {/* Cantidad */}
+        <input type="number" min="0" step="any" value={formData.quantity}
+          onChange={e => setFormData(p => ({ ...p, quantity: parseFloat(e.target.value) || 0 }))}
+          className="w-16 bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] text-center font-mono focus:outline-none focus:border-[#4A6FA5] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
 
-          {/* Fecha */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2 cursor-pointer">
-              Fecha
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500
-                          [color-scheme:dark] appearance-none cursor-pointer"
-              />
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 cursor-pointer" />
-            </div>
-          </div>
-        </div>
+        <span className="text-[#B0A99C]">×</span>
 
-        {/* Formularios para crear nuevos elementos */}
-        {showAssetForm && (
-          <AssetCreationForm
-            onSuccess={handleAssetCreated}
-            onCancel={() => setShowAssetForm(false)}
-            setToast={setToast} 
-          />
-        )}
+        {/* Activo */}
+        <select value={formData.asset_id} onChange={e => handleAssetChange(parseInt(e.target.value))}
+          className="bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] font-medium focus:outline-none focus:border-[#4A6FA5] cursor-pointer max-w-[160px] truncate">
+          {assets.map(a => <option key={a.asset_id} value={a.asset_id}>{a.ticker || a.name}</option>)}
+        </select>
 
-        {showAccountForm && (
-          <AccountCreationForm
-            onSuccess={handleAccountCreated}
-            onCancel={() => setShowAccountForm(false)}
-            setToast={setToast} 
-          />
-        )}
+        <span className="text-[#B0A99C]">en</span>
 
-        {/* Fila 2: Tipo de operación y detalles */}
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-          {/* Selector de tipo de operación - MEJORADO */}
-          <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Tipo
-            </label>
-            <div className="flex border border-gray-700 rounded-lg overflow-hidden bg-gray-800">
-              <button
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, operation_type: 'buy' }))}
-                className={`flex-1 py-2 px-3 text-center font-medium transition-colors ${
-                  formData.operation_type === 'buy' 
-                    ? 'bg-green-600/70 text-white' 
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                }`}
-              >
-                Compra
-              </button>
-              <div className="w-px bg-gray-700"></div>
-              <button
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, operation_type: 'sell' }))}
-                className={`flex-1 py-2 px-3 text-center font-medium transition-colors ${
-                  formData.operation_type === 'sell' 
-                    ? 'bg-red-600/70 text-white' 
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                }`}
-              >
-                Venta
-              </button>
-            </div>
-          </div>
+        {/* Cuenta */}
+        <select value={formData.account_id} onChange={e => setFormData(p => ({ ...p, account_id: parseInt(e.target.value) }))}
+          className="bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] focus:outline-none focus:border-[#4A6FA5] cursor-pointer max-w-[140px] truncate">
+          {accounts.map(a => <option key={a.account_id} value={a.account_id}>{a.name}</option>)}
+        </select>
 
-          {/* Cantidad */}
-          <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Cantidad
-            </label>
-            <input
-              type="number"
-              min="0"
-              step="any"
-              value={formData.quantity}
-              onChange={(e) => setFormData(prev => ({ ...prev, quantity: parseFloat(e.target.value) }))}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500
-               [&::-webkit-inner-spin-button]:appearance-none
-               [&::-webkit-outer-spin-button]:appearance-none"
-            />
-          </div>
-          
-          {/* Precio por unidad */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Precio por unidad
-            </label>
-            <input
-              type="number"
-              min="0"
-              step="any"
-              value={formData.price}
-              onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) }))}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500
-               [&::-webkit-inner-spin-button]:appearance-none
-               [&::-webkit-outer-spin-button]:appearance-none"
-            />
-          </div>
-          
-          {/* Comisiones */}
-          <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Comisiones
-            </label>
-            <input
-              type="number"
-              min="0"
-              value={formData.fees || 0}
-              onChange={(e) => setFormData(prev => ({ ...prev, fees: parseFloat(e.target.value) }))}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500
-               [&::-webkit-inner-spin-button]:appearance-none
-               [&::-webkit-outer-spin-button]:appearance-none"
-            />
-          </div>
+        <span className="text-[#B0A99C]">el</span>
 
-          {/* Botón de guardar */}
-          <div className="md:col-span-1 flex items-end">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-white flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="hidden md:inline">Guardando...</span>
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden md:inline cursor-pointer">Guardar</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
+        {/* Fecha */}
+        <input type="date" value={formData.date}
+          onChange={e => setFormData(p => ({ ...p, date: e.target.value }))}
+          className="bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] focus:outline-none focus:border-[#4A6FA5]" />
+
+        {/* Separador + precio/total */}
+        <span className="text-[#B0A99C] ml-auto">·</span>
+        <span className="text-[#8B8578] font-mono">€{formData.price.toFixed(2)}</span>
+        <span className="text-[#B0A99C]">→</span>
+        <span className="text-[#2C2C2C] font-mono font-semibold">€{total.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+
+        {/* Submit */}
+        <button type="submit" disabled={loading}
+          className="ml-2 p-2 rounded-lg bg-[#2C2C2C] hover:bg-[#3D3D3D] text-[#FAF7F0] transition disabled:opacity-50 cursor-pointer">
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+        </button>
       </form>
-      
-      {/* TOAST */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

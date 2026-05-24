@@ -6,6 +6,7 @@ import time as time_module
 from dotenv import load_dotenv
 import schedule
 import pytz
+from urllib.parse import urlparse
 load_dotenv()
 
 def get_madrid_tz():
@@ -37,12 +38,26 @@ def should_run_15min():
         return False
 
 def connect_db():
-    return psycopg2.connect(
-        dbname=os.getenv("POSTGRES_DB"),
-        user=os.getenv("POSTGRES_USER"),
-        password=os.getenv("POSTGRES_PASSWORD"),
-        host="db"
-    )
+    database_url = os.getenv("DATABASE_URL")
+    if database_url:
+        # Parse the URL (works with Supabase/Railway connection strings)
+        url = urlparse(database_url)
+        return psycopg2.connect(
+            dbname=url.path[1:],
+            user=url.username,
+            password=url.password,
+            host=url.hostname,
+            port=url.port or 5432,
+            sslmode="require" if url.hostname != "db" and url.hostname != "localhost" else "prefer"
+        )
+    else:
+        return psycopg2.connect(
+            dbname=os.getenv("POSTGRES_DB"),
+            user=os.getenv("POSTGRES_USER"),
+            password=os.getenv("POSTGRES_PASSWORD"),
+            host=os.getenv("DB_HOST", "db"),
+            port=int(os.getenv("DB_PORT", "5432"))
+        )
 
 def try_get_data(identifier):
     """Intenta obtener datos de Yahoo Finance con varios sufijos si es necesario."""

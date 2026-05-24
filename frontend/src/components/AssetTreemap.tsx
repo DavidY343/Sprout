@@ -21,7 +21,7 @@ export default function AssetsTreemapPremium() {
 
   if (loading)
     return (
-      <div className="h-96 flex items-center justify-center text-purple-400/50 animate-pulse">
+      <div className="h-96 flex items-center justify-center text-[#8B8578] animate-pulse">
         Cargando dashboard...
       </div>
     )
@@ -83,7 +83,7 @@ export default function AssetsTreemapPremium() {
   const nodes = binaryTreemap(assets, 0, 0, 100, 100)
 
   return (
-    <div className="w-full bg-[#0d0d15] rounded-2xl border border-white/5 overflow-hidden shadow-2xl p-2">
+    <div className="w-full bg-white rounded-2xl border border-[#E5DED3] overflow-hidden shadow-sm p-2">
       <div className="relative w-full h-[600px]">
         {nodes.map(node => {
           const asset = node.item!
@@ -124,13 +124,13 @@ function AssetCard({
   className: string
 }) {
   const getStyle = (perf: number) => {
-    if (perf > 3) return { bg: 'bg-emerald-600/60', hover: 'group-hover:bg-emerald-500/60', text: 'text-emerald-400', border: 'border-emerald-500/40' }
-    if (perf > 1.5) return { bg: 'bg-emerald-600/40', hover: 'group-hover:bg-emerald-500/40', text: 'text-emerald-400', border: 'border-emerald-500/30' }
-    if (perf > 0) return { bg: 'bg-emerald-600/20', hover: 'group-hover:bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/20' }
-    if (perf < -3) return { bg: 'bg-rose-600/60', hover: 'group-hover:bg-rose-500/60', text: 'text-rose-400', border: 'border-rose-500/40' }
-    if (perf < -1.5) return { bg: 'bg-rose-600/40', hover: 'group-hover:bg-rose-500/40', text: 'text-rose-400', border: 'border-rose-500/30' }
-    if (perf < 0) return { bg: 'bg-rose-600/20', hover: 'group-hover:bg-rose-500/20', text: 'text-rose-400', border: 'border-rose-500/20' }
-    return { bg: 'bg-slate-800/20', hover: 'group-hover:bg-slate-700/40', text: 'text-slate-400', border: 'border-slate-500/20' }
+    if (perf > 3) return { bg: 'bg-[#6B8F71]/40', hover: 'group-hover:bg-[#6B8F71]/50', text: 'text-[#4A7050]', border: 'border-[#6B8F71]/40' }
+    if (perf > 1.5) return { bg: 'bg-[#6B8F71]/25', hover: 'group-hover:bg-[#6B8F71]/35', text: 'text-[#4A7050]', border: 'border-[#6B8F71]/30' }
+    if (perf > 0) return { bg: 'bg-[#6B8F71]/15', hover: 'group-hover:bg-[#6B8F71]/20', text: 'text-[#6B8F71]', border: 'border-[#6B8F71]/20' }
+    if (perf < -3) return { bg: 'bg-[#C25B3F]/40', hover: 'group-hover:bg-[#C25B3F]/50', text: 'text-[#A04530]', border: 'border-[#C25B3F]/40' }
+    if (perf < -1.5) return { bg: 'bg-[#C25B3F]/25', hover: 'group-hover:bg-[#C25B3F]/35', text: 'text-[#A04530]', border: 'border-[#C25B3F]/30' }
+    if (perf < 0) return { bg: 'bg-[#C25B3F]/15', hover: 'group-hover:bg-[#C25B3F]/20', text: 'text-[#C25B3F]', border: 'border-[#C25B3F]/20' }
+    return { bg: 'bg-[#E5DED3]/30', hover: 'group-hover:bg-[#E5DED3]/50', text: 'text-[#8B8578]', border: 'border-[#D5CEC2]' }
   }
 
   const style = getStyle(asset.performance)
@@ -142,25 +142,23 @@ function AssetCard({
     <div
       className={`
         relative group cursor-pointer transition-all duration-500 
-        rounded-xl border backdrop-blur-md overflow-hidden h-full w-full
-        hover:z-30 hover:shadow-[0_0_30px_rgba(0,0,0,0.5)]
+        rounded-xl border overflow-hidden h-full w-full
+        hover:z-30 hover:shadow-md
         ${style.bg} ${style.hover} ${style.border} ${className}
       `}
     >
     
-      {/* Contenido Principal (Siempre visible) */}
+      {/* Contenido Principal */}
       <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
         
-        {/* Nombre */}
-       <span className={`
-          text-white font-bold leading-tight tracking-wide transition-all duration-500 px-1
+        <span className={`
+          text-[#2C2C2C] font-bold leading-tight tracking-wide transition-all duration-500 px-1
           ${isLarge ? 'text-2xl' : isMedium ? 'text-base' : 'text-[10px]'}
           group-hover:-translate-y-12 group-hover:scale-90 group-hover:opacity-40
         `}>
           {asset.name}
         </span>
 
-        {/* RENDIMIENTO */}
         <div className={`
           flex items-center gap-1 font-bold transition-all duration-500
           ${isLarge ? 'text-sm' : 'text-[9px]'}
@@ -171,17 +169,14 @@ function AssetCard({
           <span>{Math.abs(asset.performance).toFixed(2)}%</span>
         </div>
 
-        {/* --- DATOS EXTRA (Solo visibles en Hover) --- */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/20 backdrop-blur-[2px] gap-1">
-          {/* Valor Actual */}
-          <span className={`text-white/70 font-bold leading-none ${isLarge ? 'text-xl' : 'text-sm'}`}>
+        <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/40 backdrop-blur-[2px] gap-1">
+          <span className={`text-[#2C2C2C]/70 font-bold leading-none ${isLarge ? 'text-xl' : 'text-sm'}`}>
             {asset.ticker || asset.isin}
           </span>
-          <span className={`text-white/70 font-bold leading-none ${isLarge ? 'text-xl' : 'text-sm'}`}>
+          <span className={`text-[#2C2C2C]/70 font-bold leading-none ${isLarge ? 'text-xl' : 'text-sm'}`}>
             Valor: {asset.total_value.toLocaleString()}€
           </span>
-          {/* Peso en Cartera */}
-          <span className="text-white/60 text-sm tracking-tighter">
+          <span className="text-[#5A5549] text-sm tracking-tighter">
             Peso: {weight.toFixed(1)}%
           </span>
         </div>

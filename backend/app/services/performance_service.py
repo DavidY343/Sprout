@@ -107,6 +107,14 @@ async def get_performance_metrics(db: AsyncSession, user_id: int):
     result = await db.execute(query, {"user_id": user_id})
     row = result.fetchone()
 
+    if not row or row.current_val is None or row.current_cap is None:
+        return {
+            "month": {"pct": 0.0, "abs": 0.0},
+            "three_months": {"pct": 0.0, "abs": 0.0},
+            "ytd": {"pct": 0.0, "abs": 0.0},
+            "total": {"pct": 0.0, "abs": 0.0}
+        }
+
     def calc_metrics(current, past):
         if past is None or past == 0: 
             return {"pct": 0.0, "abs": 0.0}
