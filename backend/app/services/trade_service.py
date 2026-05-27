@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models import Operation, Asset, Account, PriceHistory
+from app.models.transaction import Transaction
 from app.schemas.operation import OperationCreate, OperationUpdate
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import insert
@@ -91,9 +92,53 @@ async def update_operation(db: AsyncSession, operation_id: int, update_data: Ope
     if not operation:
         raise ValueError("Operation not found or doesn't belong to user")
 
-    # Apply updates
+    # Save original values for transaction lookup
+    original_amount = operation.quantity * operation.price
+    original_fees = operation.fees or 0
+    original_is_buy = operation.operation_type == 'buy'
+    original_total = (original_amount + original_fees) if original_is_buy else (original_amount - original_fees)
+    original_date = operation.date
+
+    # Apply updates to the operation
     update_dict = update_data.model_dump(exclude_unset=True, exclude_none=True)
     for key, value in update_dict.items():
         setattr(operation, key, value)
+
+    # Find and update the associated cash transaction
+    # Match by account, category, date, and original amount
+    stmt_tx = (
+        select(Transaction)
+        .where(
+            Transaction.account_id == operation.account_id,
+            Transaction.category == "Inversión",
+            Transaction.date == original_date,
+            Transaction.amount == original_total,
+            Transaction.is_active == True
+        )
+        .order_by(Transaction.created_at.desc())
+        .limit(1)
+    )
+    result_tx = await db.execute(stmt_tx)
+    transaction = result_tx.scalar_one_or_none()
+
+    if transaction:
+        is_buy = operation.operation_type == 'buy'
+        net_amount = operation.quantity * operation.price
+        new_fees = operation.fees or 0
+        total_amount = (net_amount + new_fees) if is_buy else (net_amount - new_fees)
+        transaction.amount = total_amount
+        transaction.type = "expense" if is_buy else "income"
+        transaction.date = operation.date
+
+    # Update price_history with the new price
+    stmt_upsert = insert(PriceHistory).values(
+        asset_id=operation.asset_id,
+        date=operation.date,
+        price=operation.price
+    ).on_conflict_do_update(
+        index_elements=['asset_id', 'date'],
+        set_=dict(price=operation.price)
+    )
+    await db.execute(stmt_upsert)
 
     return operation
