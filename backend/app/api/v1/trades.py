@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user_id, get_db
-from app.services.trade_service import get_trade_history, create_operation
+from app.services.trade_service import get_trade_history, create_operation, update_operation
 from app.services.transaction_service import create_transaction_from_operation
 
 from app.models.asset import Asset
 from app.schemas.trade import TradeHistoryResponse
-from app.schemas.operation import OperationCreate, OperationResponse
+from app.schemas.operation import OperationCreate, OperationResponse, OperationUpdate
 from typing import Optional
 
 router = APIRouter()
@@ -50,3 +50,23 @@ async def create_new_operation(operation_data: OperationCreate, user_id: int = D
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Error interno al procesar la operación: {str(e)}")
+
+
+@router.put("/{operation_id}", response_model=OperationResponse)
+async def update_existing_operation(
+    operation_id: int,
+    update_data: OperationUpdate,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        operation = await update_operation(db, operation_id, update_data, user_id)
+        await db.commit()
+        await db.refresh(operation)
+        return operation
+    except ValueError as e:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al actualizar la operación: {str(e)}")

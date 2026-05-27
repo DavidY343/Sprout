@@ -1,5 +1,5 @@
-import { TradeHistory, Operation, OperationCreate } from '../types/trade';
-import { apiGet, apiPost } from './api';
+import { TradeHistory, Operation, OperationCreate, OperationUpdate } from '../types/trade';
+import { apiGet, apiPost, apiPut } from './api';
 
 /**
  * Obtiene el historial completo de operaciones del usuario
@@ -39,6 +39,16 @@ export async function createTradeWithPriceHistory(
         return data;
     } catch (error) {
         console.error('Error creating trade with price history:', error);
+        throw error;
+    }
+}
+
+export async function updateTrade(operationId: number, updateData: OperationUpdate): Promise<Operation> {
+    try {
+        const data = await apiPut<Operation>(`/trades/${operationId}`, updateData, true);
+        return data;
+    } catch (error) {
+        console.error('Error updating trade:', error);
         throw error;
     }
 }

@@ -30,6 +30,31 @@ class OperationCreate(BaseModel):
             raise ValueError('Fees cannot be negative')
         return v
 
+class OperationUpdate(BaseModel):
+    date: Optional[datetime] = None
+    quantity: Optional[Decimal] = None
+    price: Optional[Decimal] = None
+    fees: Optional[Decimal] = None
+    operation_type: Optional[str] = None
+
+    @field_validator('operation_type')
+    def validate_operation_type(cls, v):
+        if v is not None and v.lower() not in ['buy', 'sell']:
+            raise ValueError('Operation type must be "buy" or "sell"')
+        return v.lower() if v else v
+
+    @field_validator('quantity', 'price')
+    def validate_positive(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError('Must be positive')
+        return v
+
+    @field_validator('fees')
+    def validate_non_negative(cls, v):
+        if v is not None and v < 0:
+            raise ValueError('Fees cannot be negative')
+        return v
+
 class OperationResponse(BaseModel):
     operation_id: int
     asset_id: int

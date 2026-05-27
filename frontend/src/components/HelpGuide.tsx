@@ -3,17 +3,41 @@ import { HelpCircle, X } from 'lucide-react'
 
 interface HelpGuideProps {
   activeTab: string
+  portfolioView?: string
 }
 
 const guides: Record<string, { title: string; items: string[] }> = {
-  portfolio: {
-    title: 'Portfolio',
+  'portfolio:resumen': {
+    title: 'Portfolio — Resumen',
     items: [
       'Aquí ves el resumen global de tus inversiones: valor total, cash disponible y rendimiento.',
       'Las tarjetas superiores (KPIs) muestran métricas clave como rentabilidad mensual, YTD y total.',
       'El gráfico muestra la evolución histórica de tu portfolio.',
-      'Los donuts desglosan tu distribución por cuentas y por activos.',
       'La tabla inferior lista todos tus activos con cantidad, precio actual y ganancia/pérdida.',
+    ],
+  },
+  'portfolio:distribucion': {
+    title: 'Portfolio — Distribución',
+    items: [
+      'Los donuts desglosan tu distribución por cuentas y por activos.',
+      'Usa el selector de cuenta para filtrar una cuenta específica.',
+      'El selector de agrupación permite ver por tipo, temática o activo individual.',
+    ],
+  },
+  'portfolio:mapa': {
+    title: 'Portfolio — Mapa',
+    items: [
+      'El treemap muestra tus activos como bloques proporcionales a su valor.',
+      'El color indica rendimiento: verde = ganancia, rojo = pérdida.',
+      'Cuanto más grande el bloque, mayor peso tiene ese activo en tu cartera.',
+    ],
+  },
+  'portfolio:config': {
+    title: 'Portfolio — Configuración',
+    items: [
+      'Aquí puedes crear nuevas cuentas de inversión (brokers, bancos, etc.).',
+      'También puedes añadir activos con su ticker de Yahoo Finance.',
+      'El worker de precios empezará a traer cotizaciones automáticamente para los activos que añadas.',
     ],
   },
   trades: {
@@ -23,6 +47,7 @@ const guides: Record<string, { title: string; items: string[] }> = {
       'Selecciona Comprar/Vender, la cantidad, el activo, la cuenta y la fecha.',
       'Puedes editar el precio de compra manualmente (no tiene por qué ser el precio actual).',
       'El total se calcula automáticamente: cantidad × precio.',
+      'Para editar un trade existente, pulsa sobre la fila en la tabla.',
       'Cada trade genera automáticamente un movimiento de efectivo en la cuenta correspondiente.',
     ],
   },
@@ -38,9 +63,11 @@ const guides: Record<string, { title: string; items: string[] }> = {
   },
 }
 
-export default function HelpGuide({ activeTab }: HelpGuideProps) {
+export default function HelpGuide({ activeTab, portfolioView }: HelpGuideProps) {
   const [open, setOpen] = useState(false)
-  const guide = guides[activeTab] || guides.portfolio
+
+  const guideKey = activeTab === 'portfolio' ? `portfolio:${portfolioView || 'resumen'}` : activeTab
+  const guide = guides[guideKey] || guides['portfolio:resumen']
 
   return (
     <>

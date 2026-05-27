@@ -25,7 +25,12 @@ const NAV_ITEMS: { id: View; label: string; icon: React.ReactNode }[] = [
   { id: 'config', label: 'Configuración', icon: <Settings className="w-5 h-5" /> },
 ]
 
-export default function PortfolioPage() {
+interface PortfolioPageProps {
+  view: string
+  setView: (v: string) => void
+}
+
+export default function PortfolioPage({ view, setView }: PortfolioPageProps) {
   const [accounts, setAccounts] = useState<AccountWithBalance[]>([])
   const [selectedAccountId, setSelectedAccountId] = useState<number | 'all'>('all')
   const [selectedAssetAccountId, setSelectedAssetAccountId] = useState<number | 'all'>('all')
@@ -33,7 +38,6 @@ export default function PortfolioPage() {
   const [historyAccountId, setHistoryAccountId] = useState<number | 'all'>('all')
   const [metrics, setMetrics] = useState<PerformanceResponse | null>(null)
   const [loading, setLoading] = useState(true)
-  const [view, setView] = useState<View>('resumen')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => { loadAccounts() }, [])

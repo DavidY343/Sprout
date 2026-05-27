@@ -167,16 +167,16 @@ export async function apiPost<T>(
   return apiRequest<T>(endpoint, config, requireAuth);
 }
 
-// export async function apiPut<T>(
-//     endpoint: string, 
-//     data: any, 
-//     requireAuth: boolean = false
-// ): Promise<T> {
-//     return apiRequest<T>(endpoint, {
-//         method: 'PUT',
-//         body: JSON.stringify(data),
-//     }, requireAuth);
-// }
+export async function apiPut<T>(
+    endpoint: string, 
+    data: any, 
+    requireAuth: boolean = false
+): Promise<T> {
+    return apiRequest<T>(endpoint, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    }, requireAuth);
+}
 
 // export async function apiDelete<T>(
 //     endpoint: string, 

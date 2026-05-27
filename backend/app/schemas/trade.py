@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 class TradeHistoryResponse(BaseModel):
+    operation_id: int
     ticker: Optional[str] = None
     isin: Optional[str] = None
     asset_name: str

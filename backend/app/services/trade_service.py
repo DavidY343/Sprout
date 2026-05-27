@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models import Operation, Asset, Account, PriceHistory
-from app.schemas.operation import OperationCreate
+from app.schemas.operation import OperationCreate, OperationUpdate
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import insert
 
@@ -14,6 +14,7 @@ async def get_trade_history(db: AsyncSession, user_id: int):
     
     stmt = (
         select(
+            Operation.operation_id,
             Asset.ticker,
             Asset.isin,
             Asset.name.label("asset_name"),
@@ -75,3 +76,24 @@ async def create_operation(db: AsyncSession, operation_data: OperationCreate, us
     await db.execute(stmt_upsert)
     
     return db_operation, asset
+
+
+async def update_operation(db: AsyncSession, operation_id: int, update_data: OperationUpdate, user_id: int) -> Operation:
+    # Fetch the operation and verify ownership
+    stmt = (
+        select(Operation)
+        .join(Account, Operation.account_id == Account.account_id)
+        .where(Operation.operation_id == operation_id, Account.user_id == user_id)
+    )
+    result = await db.execute(stmt)
+    operation = result.scalar_one_or_none()
+
+    if not operation:
+        raise ValueError("Operation not found or doesn't belong to user")
+
+    # Apply updates
+    update_dict = update_data.model_dump(exclude_unset=True, exclude_none=True)
+    for key, value in update_dict.items():
+        setattr(operation, key, value)
+
+    return operation

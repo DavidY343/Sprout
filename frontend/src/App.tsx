@@ -10,6 +10,8 @@ import { app } from './styles/theme'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('portfolio')
+  const [portfolioView, setPortfolioView] = useState('resumen')
+  const [portfolioKey, setPortfolioKey] = useState(0)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
@@ -29,15 +31,20 @@ export default function App() {
     return <LoginPage />
   }
 
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab)
+    if (tab === 'portfolio') setPortfolioKey(k => k + 1)
+  }
+
   return (
     <div className={app.body}>
-      <TopBar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <TopBar activeTab={activeTab} setActiveTab={handleTabChange} />
       <main className={app.main}>
-        {activeTab === 'portfolio' && <PortfolioPage />}
+        {activeTab === 'portfolio' && <PortfolioPage key={portfolioKey} view={portfolioView} setView={setPortfolioView} />}
         {activeTab === 'trades' && <TradesPage />}
         {activeTab === 'transactions' && <TransactionPage />}
       </main>
-      <HelpGuide activeTab={activeTab} />
+      <HelpGuide activeTab={activeTab} portfolioView={portfolioView} />
     </div>
   )
 }

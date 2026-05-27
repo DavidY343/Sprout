@@ -1,4 +1,5 @@
 export interface TradeHistory {
+    operation_id: number;
     ticker: string | null;
     isin: string | null;
     asset_name: string;
@@ -30,4 +31,12 @@ export interface OperationCreate {
     price: number;
     fees?: number;
     operation_type: 'buy' | 'sell';
+}
+
+export interface OperationUpdate {
+    date?: string;
+    quantity?: number;
+    price?: number;
+    fees?: number;
+    operation_type?: 'buy' | 'sell';
 }
