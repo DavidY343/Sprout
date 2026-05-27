@@ -1,6 +1,13 @@
 # Smoke Tests
 
 Use this folder for lightweight end-to-end checks that confirm core behavior after changes.
+Tests run against the **production** environment by default (Railway + Vercel + Supabase).
+
+## Environment variables (optional overrides)
+| Variable | Default | Description |
+|---|---|---|
+| `SPROUT_API_URL` | `https://sprout-backend-production-3aff.up.railway.app/api/v1` | Backend API base URL |
+| `SPROUT_FRONTEND_URL` | `https://sprout-bice.vercel.app` | Frontend URL |
 
 ## Rules
 - Keep tests small and fast.

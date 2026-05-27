@@ -1,6 +1,6 @@
 #!/usr/bin/env pwsh
 # Smoke test — UI Theme (Le Corbusier palette)
-# Validates that the frontend compiles and serves correctly with the new theme.
+# Validates theme files locally and frontend availability on Vercel.
 
 $ErrorActionPreference = 'Stop'
 $pass = 0; $fail = 0
@@ -10,15 +10,13 @@ function Assert($name, $condition) {
   else            { Write-Host "  FAIL  $name" -ForegroundColor Red;   $script:fail++ }
 }
 
+$frontendUrl = if ($env:SPROUT_FRONTEND_URL) { $env:SPROUT_FRONTEND_URL } else { 'https://sprout-bice.vercel.app' }
+
 Write-Host "`n=== UI Theme Smoke Tests ===" -ForegroundColor Cyan
 
-# 1. Frontend container is running
-$frontendState = docker inspect --format '{{.State.Running}}' fintech-frontend 2>$null
-Assert "Frontend container running" ($frontendState -eq 'true')
-
-# 2. Frontend serves index.html
+# 1. Frontend serves index.html (Vercel)
 try {
-  $response = Invoke-WebRequest -Uri "http://localhost:5173/" -UseBasicParsing -TimeoutSec 10
+  $response = Invoke-WebRequest -Uri "$frontendUrl/" -UseBasicParsing -TimeoutSec 15
   Assert "Frontend responds 200" ($response.StatusCode -eq 200)
 } catch {
   Assert "Frontend responds 200" $false

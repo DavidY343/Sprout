@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import TopBar from './components/TopBar'
+import HelpGuide from './components/HelpGuide'
 import PortfolioPage from './pages/PortfolioPage'
 import TradesPage from './pages/TradesPage'
 import LoginPage from './pages/LoginPage'
@@ -36,6 +37,7 @@ export default function App() {
         {activeTab === 'trades' && <TradesPage />}
         {activeTab === 'transactions' && <TransactionPage />}
       </main>
+      <HelpGuide activeTab={activeTab} />
     </div>
   )
 }

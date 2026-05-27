@@ -102,8 +102,14 @@ export default function AddTradeForm({ onSuccess }: AddTradeFormProps) {
           className="bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] focus:outline-none focus:border-[#4A6FA5]" />
 
         {/* Separador + precio/total */}
-        <span className="text-[#B0A99C] ml-auto">·</span>
-        <span className="text-[#8B8578] font-mono">€{formData.price.toFixed(2)}</span>
+        <span className="text-[#B0A99C] ml-auto">a</span>
+        <div className="relative flex items-center">
+          <span className="absolute left-1 text-[#8B8578] font-mono text-sm pointer-events-none">€</span>
+          <input type="number" min="0" step="any" value={formData.price || ''}
+            onChange={e => setFormData(p => ({ ...p, price: parseFloat(e.target.value) || 0 }))}
+            placeholder="Precio"
+            className="w-24 pl-4 bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] font-mono text-right focus:outline-none focus:border-[#4A6FA5] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+        </div>
         <span className="text-[#B0A99C]">→</span>
         <span className="text-[#2C2C2C] font-mono font-semibold">€{total.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
 

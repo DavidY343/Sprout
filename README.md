@@ -1,37 +1,39 @@
-# Fintech Tracker - Sistema de Gestión Financiera
+# Sprout — Portfolio Tracker
 
-Aplicación web completa para tracking de gastos e ingresos construida con FastAPI, React y PostgreSQL.
+Aplicación web para gestión y seguimiento de inversiones personales: portfolios, trades, transacciones y rebalanceo.
 
-## Requisitos Previos
+## Producción
 
-- [Docker](https://www.docker.com/get-started) (v20.10+)
-- [Docker Compose](https://docs.docker.com/compose/install/) (v2.0+)
-- Git
+| Servicio | URL |
+|---|---|
+| Frontend (Vercel) | https://sprout-bice.vercel.app |
+| Backend API (Railway) | https://sprout-backend-production-3aff.up.railway.app |
+| API Docs | https://sprout-backend-production-3aff.up.railway.app/docs |
+| Base de datos | Supabase (PostgreSQL) |
 
-## Inicio Rápido
+## Stack
 
-### 1. Clonar el repositorio
+- **Frontend**: React + TypeScript + Vite + Tailwind CSS
+- **Backend**: FastAPI + SQLAlchemy (async)
+- **Worker**: Python (actualización de precios)
+- **DB**: PostgreSQL (Supabase)
+- **Deploy**: Vercel · Railway · Supabase
+
+## Desarrollo local (opcional)
+
+### Requisitos
+- Docker & Docker Compose (v2+)
+
+### Levantar con Docker
 ```bash
-git clone https://github.com/tuusuario/fintech-tracker.git
-cd fintech-tracker
-```
-
-### 2. Configurar variables de entorno
-```bash
-cp .env.example .env
-```
-(Opcional: Puedes dejar los valores por defecto para desarrollo)
-
-### 3. Construir y levantar los contenedores
-```bash
+git clone https://github.com/tuusuario/sprout.git
+cd sprout
 docker-compose up --build
 ```
-
-### 4. Acceder a la aplicación
 - Backend: `http://localhost:8000`
-- Documentación API: `http://localhost:8000/docs`
 - Frontend: `http://localhost:5173`
+- API Docs: `http://localhost:8000/docs`
 
 ### Credenciales con datos dummy
 - Correo: `demo@user.com`
-- Contraseña: `hashed_password`
+- Contraseña: `admin123`

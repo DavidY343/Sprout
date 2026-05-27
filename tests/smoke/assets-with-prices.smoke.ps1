@@ -1,7 +1,7 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$baseUri = 'http://localhost:8000/api/v1'
+$baseUri = if ($env:SPROUT_API_URL) { $env:SPROUT_API_URL } else { 'https://sprout-backend-production-3aff.up.railway.app/api/v1' }
 $assetsUri = "$baseUri/assets/with-prices"
 $registerUri = "$baseUri/auth/register"
 
