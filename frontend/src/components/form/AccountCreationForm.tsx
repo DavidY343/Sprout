@@ -31,7 +31,7 @@ export default function AccountCreationForm({ onSuccess }: AccountCreationFormPr
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+      <div className="grid grid-cols-1 gap-4">
         <div>
           <label className={text.fieldLabel}>Nombre</label>
           <input type="text" placeholder="Ej: Trade Republic" value={form.name}
