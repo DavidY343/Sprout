@@ -32,14 +32,6 @@ const guides: Record<string, { title: string; items: string[] }> = {
       'Cuanto más grande el bloque, mayor peso tiene ese activo en tu cartera.',
     ],
   },
-  'portfolio:config': {
-    title: 'Portfolio — Configuración',
-    items: [
-      'Aquí puedes crear nuevas cuentas de inversión (brokers, bancos, etc.).',
-      'También puedes añadir activos con su ticker de Yahoo Finance.',
-      'El worker de precios empezará a traer cotizaciones automáticamente para los activos que añadas.',
-    ],
-  },
   trades: {
     title: 'Trades',
     items: [

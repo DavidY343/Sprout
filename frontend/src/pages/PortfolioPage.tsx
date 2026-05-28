@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import KPICard from '../components/KPICard'
 import { getAccountsWithBalance } from '../services/accountService'
 import { AccountWithBalance } from '../types/account'
-import { PieChart, TrendingUp, Wallet, Menu, X, BarChart3, Settings, LayoutGrid } from 'lucide-react'
+import { PieChart, TrendingUp, Wallet, Menu, X, BarChart3, LayoutGrid } from 'lucide-react'
 import AccountsDonut from '../components/donuts/AccountsDonut'
 import AccountSelector from '../components/selectors/AccountSelector'
 import AssetsDonut from '../components/donuts/AssetsDonut'
@@ -13,16 +13,12 @@ import PortfolioHistoryChart from '../components/PortfolioHistoryChart'
 import { getPerformanceMetrics } from '../services/performanceService'
 import { PerformanceResponse } from '../types/performance'
 import { layout, surface, glow, text, button } from '../styles/theme'
-import AccountCreationForm from '../components/form/AccountCreationForm'
-import AssetCreationForm from '../components/form/AssetCreationForm'
-
-type View = 'resumen' | 'distribucion' | 'mapa' | 'config'
+type View = 'resumen' | 'distribucion' | 'mapa'
 
 const NAV_ITEMS: { id: View; label: string; icon: React.ReactNode }[] = [
   { id: 'resumen', label: 'Resumen', icon: <Wallet className="w-5 h-5" /> },
   { id: 'distribucion', label: 'Distribución', icon: <PieChart className="w-5 h-5" /> },
   { id: 'mapa', label: 'Mapa', icon: <LayoutGrid className="w-5 h-5" /> },
-  { id: 'config', label: 'Configuración', icon: <Settings className="w-5 h-5" /> },
 ]
 
 interface PortfolioPageProps {
@@ -201,25 +197,7 @@ export default function PortfolioPage({ view, setView }: PortfolioPageProps) {
           </div>
         )}
 
-        {/* ============ VIEW: CONFIGURACIÓN ============ */}
-        {view === 'config' && (
-          <div className="space-y-6">
-            <div className={surface.card}>
-              <div className="mb-5">
-                <h2 className={text.sectionTitle}>Cuentas</h2>
-                <p className={text.sectionDesc}>Añade tus cuentas de inversión (Trade Republic, MyInvestor, etc.)</p>
-              </div>
-              <AccountCreationForm onSuccess={() => loadAccounts()} />
-            </div>
-            <div className={surface.card}>
-              <div className="mb-5">
-                <h2 className={text.sectionTitle}>Activos</h2>
-                <p className={text.sectionDesc}>Añade activos con su ticker de Yahoo Finance. El worker empezará a traer precios automáticamente.</p>
-              </div>
-              <AssetCreationForm />
-            </div>
-          </div>
-        )}
+
       </div>
     </div>
   )
