@@ -1,0 +1,25 @@
+name: Update Prices
+
+on:
+  schedule:
+    # L-V a las 21:00 UTC (23:00 Madrid invierno / 22:00 verano — tras cierre US)
+    - cron: '0 21 * * 1-5'
+  workflow_dispatch: # Permite ejecución manual desde GitHub
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r worker/requirements.txt
+
+      - name: Run price update
+        run: python worker/main.py
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

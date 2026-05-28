@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Loader2, Check } from 'lucide-react';
 import { createTrade } from '../../services/tradeService';
 import { getAssetsWithPrices, AssetWithPrice } from '../../services/assetService';
-import { getUserAccounts } from '../../services/accountService';
-import { Account } from '../../types/account';
+import { getAccountsWithBalance } from '../../services/accountService';
+import { AccountWithBalance } from '../../types/account';
 import { OperationCreate } from '../../types/trade';
 import Toast from '../Toast';
 import { surface } from '../../styles/theme';
@@ -15,7 +15,7 @@ interface AddTradeFormProps {
 
 export default function AddTradeForm({ onSuccess }: AddTradeFormProps) {
   const [assets, setAssets] = useState<AssetWithPrice[]>([]);
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accounts, setAccounts] = useState<AccountWithBalance[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [toast, setToast] = useState<{message: string, type: 'error' | 'success'} | null>(null);
@@ -31,7 +31,7 @@ export default function AddTradeForm({ onSuccess }: AddTradeFormProps) {
   const loadData = async () => {
     try {
       setLoadingData(true);
-      const [a, c] = await Promise.all([getAssetsWithPrices(), getUserAccounts()]);
+      const [a, c] = await Promise.all([getAssetsWithPrices(), getAccountsWithBalance()]);
       setAssets(a); setAccounts(c);
       if (a.length > 0) setFormData(p => ({ ...p, asset_id: a[0].asset_id, price: a[0].current_price }));
       if (c.length > 0) setFormData(p => ({ ...p, account_id: c[0].account_id }));
@@ -49,6 +49,9 @@ export default function AddTradeForm({ onSuccess }: AddTradeFormProps) {
     if (!formData.asset_id || !formData.account_id || formData.quantity <= 0 || formData.price <= 0) {
       setToast({ message: 'Completa todos los campos', type: 'error' }); return;
     }
+    if (insufficientFunds) {
+      setToast({ message: `Fondos insuficientes (disponible: €${cashBalance.toLocaleString('es-ES', { minimumFractionDigits: 2 })})`, type: 'error' }); return;
+    }
     try {
       setLoading(true);
       await createTrade(formData);
@@ -63,6 +66,9 @@ export default function AddTradeForm({ onSuccess }: AddTradeFormProps) {
 
   const total = formData.quantity * formData.price;
   const isBuy = formData.operation_type === 'buy';
+  const selectedAccount = accounts.find(a => a.account_id === formData.account_id);
+  const cashBalance = selectedAccount?.cash_balance ?? 0;
+  const insufficientFunds = isBuy && total > cashBalance;
 
   return (
     <div className={surface.card}>
@@ -111,10 +117,11 @@ export default function AddTradeForm({ onSuccess }: AddTradeFormProps) {
             className="w-24 pl-4 bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] font-mono text-right focus:outline-none focus:border-[#4A6FA5] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
         </div>
         <span className="text-[#B0A99C]">→</span>
-        <span className="text-[#2C2C2C] font-mono font-semibold">€{total.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+        <span className={`font-mono font-semibold ${insufficientFunds ? 'text-[#C25B3F]' : 'text-[#2C2C2C]'}`}>€{total.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+        {insufficientFunds && <span className="text-xs text-[#C25B3F]">Cash: €{cashBalance.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>}
 
         {/* Submit */}
-        <button type="submit" disabled={loading}
+        <button type="submit" disabled={loading || insufficientFunds}
           className="ml-2 p-2 rounded-lg bg-[#2C2C2C] hover:bg-[#3D3D3D] text-[#FAF7F0] transition disabled:opacity-50 cursor-pointer">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
         </button>
