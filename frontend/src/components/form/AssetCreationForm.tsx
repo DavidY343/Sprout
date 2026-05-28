@@ -23,7 +23,7 @@ export default function AssetCreationForm({ onSuccess }: AssetCreationFormProps)
     }
     try {
       setLoading(true);
-      const asset = await createAsset({ ...form, name: form.name || form.ticker || '' });
+      const asset = await createAsset({ ...form, name: form.name || form.ticker || '', theme: form.theme || 'Otros' });
       setToast({ message: `${asset.ticker || asset.name} creado — el worker traerá precios`, type: 'success' });
       setForm({ name: '', ticker: '', isin: '', currency: 'EUR', type: 'etf', theme: '' });
       setTimeout(() => { if (onSuccess) onSuccess(asset) }, 800);
@@ -33,28 +33,32 @@ export default function AssetCreationForm({ onSuccess }: AssetCreationFormProps)
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Fila 1: Nombre */}
+      <div>
+        <label className={text.fieldLabel}>Nombre</label>
+        <input type="text" placeholder="Ej: Vanguard S&P 500 ETF" value={form.name}
+          onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+          className={input.base} />
+      </div>
+
+      {/* Fila 2: ISIN | Ticker */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className={text.fieldLabel}>Ticker (Yahoo Finance)</label>
-          <input type="text" placeholder="Ej: VUSA.L, MSFT" value={form.ticker || ''}
-            onChange={e => setForm(p => ({ ...p, ticker: e.target.value.toUpperCase() }))}
-            className={input.base + ' font-mono'} />
-          <p className="text-[10px] text-[#B0A99C] mt-1">Identificador que usa el worker para traer precios</p>
-        </div>
-        <div>
-          <label className={text.fieldLabel}>Nombre</label>
-          <input type="text" placeholder="Ej: Vanguard S&P 500 ETF" value={form.name}
-            onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-            className={input.base} />
-        </div>
-        <div>
-          <label className={text.fieldLabel}>ISIN (opcional)</label>
+          <label className={text.fieldLabel}>ISIN (fondos)</label>
           <input type="text" placeholder="Ej: IE00B3XXRP09" value={form.isin || ''}
             onChange={e => setForm(p => ({ ...p, isin: e.target.value.toUpperCase() }))}
             className={input.base + ' font-mono'} />
         </div>
+        <div>
+          <label className={text.fieldLabel}>Ticker (acciones)</label>
+          <input type="text" placeholder="Ej: VUSA.L, MSFT" value={form.ticker || ''}
+            onChange={e => setForm(p => ({ ...p, ticker: e.target.value.toUpperCase() }))}
+            className={input.base + ' font-mono'} />
+        </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
+
+      {/* Fila 3: Tipo | Divisa */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className={text.fieldLabel}>Tipo</label>
           <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
@@ -76,9 +80,13 @@ export default function AssetCreationForm({ onSuccess }: AssetCreationFormProps)
             <option value="GBP">GBP</option>
           </select>
         </div>
+      </div>
+
+      {/* Fila 4: Temática | Crear activo */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
         <div>
-          <label className={text.fieldLabel}>Temática (opcional)</label>
-          <input type="text" placeholder="Ej: Tecnología, Global" value={form.theme || ''}
+          <label className={text.fieldLabel}>Temática</label>
+          <input type="text" placeholder="Otros" value={form.theme || ''}
             onChange={e => setForm(p => ({ ...p, theme: e.target.value }))}
             className={input.base} />
         </div>
@@ -89,6 +97,7 @@ export default function AssetCreationForm({ onSuccess }: AssetCreationFormProps)
           </button>
         </div>
       </div>
+
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     </form>
   );
