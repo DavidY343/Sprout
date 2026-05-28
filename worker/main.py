@@ -80,7 +80,12 @@ def fetch_closing_prices():
         conn = connect_db()
         cur = conn.cursor()
 
-        cur.execute("SELECT asset_id, ticker, isin, type FROM assets WHERE is_active = TRUE")
+        cur.execute("""
+            SELECT asset_id, ticker, isin, type FROM assets
+            WHERE is_active = TRUE
+              AND ticker NOT LIKE 'TST\\_%' ESCAPE '\\'
+              AND ticker NOT LIKE '%%\\_E2E' ESCAPE '\\'
+        """)
         assets = cur.fetchall()
         problem_assets = []
 
