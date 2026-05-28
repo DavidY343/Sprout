@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, text
 from app.models import Operation, Asset, Account, PriceHistory
 from app.models.transaction import Transaction
 from app.schemas.operation import OperationCreate, OperationUpdate
@@ -75,6 +75,12 @@ async def create_operation(db: AsyncSession, operation_data: OperationCreate, us
     )
 
     await db.execute(stmt_upsert)
+
+    # Ensure user has visibility on this asset
+    await db.execute(
+        text("INSERT INTO user_assets (user_id, asset_id) VALUES (:uid, :aid) ON CONFLICT DO NOTHING"),
+        {"uid": user_id, "aid": operation_data.asset_id}
+    )
     
     return db_operation, asset
 

@@ -90,6 +90,18 @@ CREATE TABLE price_history (
     CONSTRAINT uq_asset_date UNIQUE (asset_id, date)
 );
 
+CREATE TABLE user_assets (
+    user_id   BIGINT NOT NULL,
+    asset_id  BIGINT NOT NULL,
+    PRIMARY KEY (user_id, asset_id),
+
+    CONSTRAINT fk_userasset_user
+        FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+
+    CONSTRAINT fk_userasset_asset
+        FOREIGN KEY (asset_id) REFERENCES assets(asset_id) ON DELETE CASCADE
+);
+
 CREATE INDEX idx_transactions_account ON transactions(account_id);
 CREATE INDEX idx_transactions_date ON transactions(date);
 
@@ -97,3 +109,6 @@ CREATE INDEX idx_operations_asset ON operations(asset_id);
 CREATE INDEX idx_operations_account ON operations(account_id);
 
 CREATE INDEX idx_price_asset_date ON price_history(asset_id, date DESC);
+
+CREATE INDEX idx_user_assets_user ON user_assets(user_id);
+CREATE INDEX idx_user_assets_asset ON user_assets(asset_id);

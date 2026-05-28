@@ -15,7 +15,7 @@ async def create_new_asset(asset_data: AssetCreate, user_id: int = Depends(get_c
     Checks for duplicates by name, ticker, or ISIN.
     """
     try:
-        asset = await create_asset(db, asset_data)
+        asset = await create_asset(db, asset_data, user_id)
         return asset
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -23,9 +23,9 @@ async def create_new_asset(asset_data: AssetCreate, user_id: int = Depends(get_c
 
 @router.get("/with-prices", summary="Get all assets with latest price from worker")
 async def get_assets_with_prices(user_id: int = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
-    """Returns all active assets with their latest price (populated by the worker)."""
+    """Returns assets visible to the current user, with their latest price."""
     try:
-        return await get_all_assets_with_prices(db)
+        return await get_all_assets_with_prices(db, user_id)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

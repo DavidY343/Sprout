@@ -4,8 +4,8 @@ from sqlalchemy import select
 from app.models import Asset, Operation, Account
 from app.schemas.asset import AssetCreate
 
-async def create_asset(db: AsyncSession, asset_data: AssetCreate) -> Asset:
-    # Verificar si ya existe
+async def create_asset(db: AsyncSession, asset_data: AssetCreate, user_id: int) -> Asset:
+    # Verificar si ya existe (dedup global por name/ticker/isin)
     stmt = select(Asset).where(
         (Asset.name == asset_data.name) | 
         (Asset.ticker == asset_data.ticker if asset_data.ticker else False) |
@@ -15,20 +15,33 @@ async def create_asset(db: AsyncSession, asset_data: AssetCreate) -> Asset:
     existing = result.scalar_one_or_none()
     
     if existing:
+        # Grant visibility to this user (idempotent)
+        await db.execute(
+            text("INSERT INTO user_assets (user_id, asset_id) VALUES (:uid, :aid) ON CONFLICT DO NOTHING"),
+            {"uid": user_id, "aid": existing.asset_id}
+        )
+        await db.commit()
         return existing
 
     db_asset = Asset(**asset_data.model_dump())
     db.add(db_asset)
+    await db.flush()  # get asset_id before commit
+    # Grant visibility to the creator
+    await db.execute(
+        text("INSERT INTO user_assets (user_id, asset_id) VALUES (:uid, :aid) ON CONFLICT DO NOTHING"),
+        {"uid": user_id, "aid": db_asset.asset_id}
+    )
     await db.commit()
     await db.refresh(db_asset)
     return db_asset
 
-async def get_all_assets_with_prices(db: AsyncSession):
-    """Returns all active assets with their latest price from price_history."""
+async def get_all_assets_with_prices(db: AsyncSession, user_id: int):
+    """Returns active assets visible to the user, with their latest price."""
     query = text("""
         SELECT a.asset_id, a.name, a.ticker, a.isin, a.type, a.currency,
                COALESCE(lp.price, 0) AS current_price
         FROM assets a
+        JOIN user_assets ua ON ua.asset_id = a.asset_id AND ua.user_id = :user_id
         LEFT JOIN LATERAL (
             SELECT price FROM price_history
             WHERE asset_id = a.asset_id
@@ -37,7 +50,7 @@ async def get_all_assets_with_prices(db: AsyncSession):
         WHERE a.is_active = true
         ORDER BY a.name;
     """)
-    result = await db.execute(query)
+    result = await db.execute(query, {"user_id": user_id})
     return [dict(r) for r in result.mappings().all()]
 
 async def get_user_assets(db: AsyncSession, user_id: int):
