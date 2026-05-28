@@ -4,7 +4,6 @@ from .transaction import Transaction
 from .asset import Asset
 from .operation import Operation
 from .price_history import PriceHistory
-from .rebalance import RebalanceSetting
 
 __all__ = [
     "User",
@@ -12,6 +11,5 @@ __all__ = [
     "Transaction", 
     "Asset",
     "Operation",
-    "PriceHistory",
-    "RebalanceSetting"
+    "PriceHistory"
 ]

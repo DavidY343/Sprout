@@ -4,7 +4,6 @@ from app.api.v1.trades import router as trades_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.assets import router as assets_router
 from app.api.v1.accounts import router as accounts_router
-from app.api.v1.rebalance import router as rebalance_router
 from app.api.v1.history_chart import router as history_chart
 from app.api.v1.transactions import router as transactions_router
 
@@ -37,12 +36,6 @@ api_router.include_router(
     accounts_router,
     prefix="/accounts",
     tags=["accounts"]
-)
-
-api_router.include_router(
-    rebalance_router,
-    prefix="/rebalance",
-    tags=["rebalance"]
 )
 
 api_router.include_router(
