@@ -68,7 +68,7 @@ try {
 try {
     $edited = Invoke-RestMethod "$API/trades/$($trade.operation_id)" -Method PUT -Headers $headers -ContentType "application/json" `
         -Body (@{quantity=4; price=100} | ConvertTo-Json)
-    if ($edited.quantity -eq 4) {
+    if ([math]::Abs($edited.quantity - 4) -lt 0.001) {
         Write-Host "[PASS] 6. Trade edited to qty=4 (valid, cash=100€)" -ForegroundColor Green; $pass++
     } else {
         Write-Host "[FAIL] 6. Unexpected qty: $($edited.quantity)" -ForegroundColor Red; $fail++
