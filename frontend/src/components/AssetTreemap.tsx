@@ -21,7 +21,7 @@ export default function AssetsTreemapPremium() {
 
   if (loading)
     return (
-      <div className="h-96 flex items-center justify-center text-[#8B8578] animate-pulse">
+      <div className="h-96 flex items-center justify-center text-[var(--text-muted)] animate-pulse">
         Cargando dashboard...
       </div>
     )
@@ -83,7 +83,7 @@ export default function AssetsTreemapPremium() {
   const nodes = binaryTreemap(assets, 0, 0, 100, 100)
 
   return (
-    <div className="w-full bg-white rounded-2xl border border-[#E5DED3] overflow-hidden shadow-sm p-2">
+    <div className="w-full bg-[var(--bg-surface)] rounded-2xl border border-[var(--border)] overflow-hidden shadow-sm p-2">
       <div className="relative w-full h-[600px]">
         {nodes.map(node => {
           const asset = node.item!
@@ -152,7 +152,7 @@ function AssetCard({
       <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
         
         <span className={`
-          text-[#2C2C2C] font-bold leading-tight tracking-wide transition-all duration-500 px-1
+          text-[var(--text-primary)] font-bold leading-tight tracking-wide transition-all duration-500 px-1
           ${isLarge ? 'text-2xl' : isMedium ? 'text-base' : 'text-[10px]'}
           group-hover:-translate-y-12 group-hover:scale-90 group-hover:opacity-40
         `}>
@@ -169,14 +169,14 @@ function AssetCard({
           <span>{Math.abs(asset.performance).toFixed(2)}%</span>
         </div>
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/40 backdrop-blur-[2px] gap-1">
-          <span className={`text-[#2C2C2C]/70 font-bold leading-none ${isLarge ? 'text-xl' : 'text-sm'}`}>
+        <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[var(--bg-surface)]/40 backdrop-blur-[2px] gap-1">
+          <span className={`text-[var(--text-primary)]/70 font-bold leading-none ${isLarge ? 'text-xl' : 'text-sm'}`}>
             {asset.ticker || asset.isin}
           </span>
-          <span className={`text-[#2C2C2C]/70 font-bold leading-none ${isLarge ? 'text-xl' : 'text-sm'}`}>
+          <span className={`text-[var(--text-primary)]/70 font-bold leading-none ${isLarge ? 'text-xl' : 'text-sm'}`}>
             Valor: {asset.total_value.toLocaleString()}€
           </span>
-          <span className="text-[#5A5549] text-sm tracking-tighter">
+          <span className="text-[var(--text-secondary)] text-sm tracking-tighter">
             Peso: {weight.toFixed(1)}%
           </span>
         </div>

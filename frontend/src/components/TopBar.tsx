@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { UserCircle, LogOut, Settings } from 'lucide-react';
+import { UserCircle, LogOut, Settings, Sun, Moon } from 'lucide-react';
 import { isAuthenticated, logout, getUserEmail } from '../services/authService';
 import { app, button } from '../styles/theme';
+import { useTheme } from '../hooks/useTheme';
 import SettingsPanel from './SettingsPanel';
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 export default function TopBar({ activeTab, setActiveTab }: Props) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const tabs = [
     { id: 'portfolio', label: 'Dashboard' },
@@ -31,7 +33,7 @@ export default function TopBar({ activeTab, setActiveTab }: Props) {
   return (
     <>
       <header className={app.topBar}>
-        <h1 className="text-xl font-semibold tracking-wide text-[#2C2C2C]">
+        <h1 className="text-xl font-semibold tracking-wide text-[var(--text-primary)]">
           Financial Hub
         </h1>
 
@@ -42,13 +44,13 @@ export default function TopBar({ activeTab, setActiveTab }: Props) {
               onClick={() => setActiveTab(tab.id)}
               className={`text-lg font-medium transition-all duration-200 relative cursor-pointer ${
                 activeTab === tab.id
-                  ? 'text-[#2C2C2C]'
-                  : 'text-[#8B8578] hover:text-[#5A5549]'
+                  ? 'text-[var(--text-primary)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >
               {tab.label}
               {activeTab === tab.id && (
-                <div className="absolute -bottom-5 left-0 right-0 h-0.5 bg-[#2C2C2C]"></div>
+                <div className="absolute -bottom-5 left-0 right-0 h-0.5 bg-[var(--text-primary)]"></div>
               )}
             </button>
           ))}
@@ -56,15 +58,22 @@ export default function TopBar({ activeTab, setActiveTab }: Props) {
 
         <div className="flex items-center gap-4">
           <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition cursor-pointer"
+            title={theme === 'light' ? 'Modo oscuro' : 'Modo claro'}
+          >
+            {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          </button>
+          <button
             onClick={() => setSettingsOpen(true)}
-            className="p-2 rounded-lg text-[#8B8578] hover:text-[#2C2C2C] hover:bg-[#F0EBE3] transition cursor-pointer"
+            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition cursor-pointer"
             title="Configuración"
           >
             <Settings className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2 text-sm">
-            <UserCircle className="w-5 h-5 text-[#8B8578]" />
-            <span className="text-[#5A5549]">
+            <UserCircle className="w-5 h-5 text-[var(--text-muted)]" />
+            <span className="text-[var(--text-secondary)]">
               {userEmail || 'Usuario'}
             </span>
           </div>

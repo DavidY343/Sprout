@@ -53,8 +53,8 @@ export default function AssetsTable() {
     return sortDirection === 'asc' ? (aV > bV ? 1 : -1) : (aV < bV ? 1 : -1)
   })
 
-  if (loading) return <div className="p-12 text-center text-[#8B8578] italic animate-pulse">Cargando activos...</div>
-  if (assets.length === 0) return <div className="p-12 text-center text-[#8B8578]">No hay datos</div>
+  if (loading) return <div className="p-12 text-center text-[var(--text-muted)] italic animate-pulse">Cargando activos...</div>
+  if (assets.length === 0) return <div className="p-12 text-center text-[var(--text-muted)]">No hay datos</div>
 
   return (
     <div className={surface.tableContainer}>
@@ -71,21 +71,21 @@ export default function AssetsTable() {
               <Th label="Rendimiento" field="profit" current={sortField} dir={sortDirection} onSort={handleSort} align="right" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#F0EBE3]">
+          <tbody className="divide-y divide-[var(--bg-surface-hover)]">
             {sortedAssets.map((asset) => (
-              <tr key={`${asset.asset_id}-${asset.account_id}`} className="hover:bg-[#FAF7F0]/60 transition-colors group">
+              <tr key={`${asset.asset_id}-${asset.account_id}`} className="hover:bg-[var(--bg-surface-alt)]/60 transition-colors group">
                 <td className="py-3 px-4">
-                  <div className="font-medium text-[#2C2C2C] group-hover:text-[#4A6FA5] transition-colors text-sm">{asset.name}</div>
-                  <div className="text-[10px] text-[#B0A99C] font-medium uppercase tracking-tight">{asset.ticker || asset.isin} • {asset.type}</div>
+                  <div className="font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-blue)] transition-colors text-sm">{asset.name}</div>
+                  <div className="text-[10px] text-[var(--text-placeholder)] font-medium uppercase tracking-tight">{asset.ticker || asset.isin} • {asset.type}</div>
                 </td>
-                <td className="py-3 px-4 text-sm text-[#8B8578] italic font-medium">{asset.account_name}</td>
-                <td className="py-3 px-4 text-sm text-right text-[#4A6FA5] font-medium">{asset.weight.toFixed(2)}%</td>
-                <td className="py-3 px-4 text-sm text-right text-[#5A5549] font-medium">{formatNumber(asset.quantity)}</td>
-                <td className="py-3 px-4 text-sm text-right text-[#8B8578] font-medium">{formatCurrency(asset.invested_value)}</td>
-                <td className="py-3 px-4 text-sm text-right text-[#2C2C2C] font-bold font-medium">{formatCurrency(asset.total_value)}</td>
+                <td className="py-3 px-4 text-sm text-[var(--text-muted)] italic font-medium">{asset.account_name}</td>
+                <td className="py-3 px-4 text-sm text-right text-[var(--accent-blue)] font-medium">{asset.weight.toFixed(2)}%</td>
+                <td className="py-3 px-4 text-sm text-right text-[var(--text-secondary)] font-medium">{formatNumber(asset.quantity)}</td>
+                <td className="py-3 px-4 text-sm text-right text-[var(--text-muted)] font-medium">{formatCurrency(asset.invested_value)}</td>
+                <td className="py-3 px-4 text-sm text-right text-[var(--text-primary)] font-bold font-medium">{formatCurrency(asset.total_value)}</td>
                 
                 {/* Dinero arriba (sm), Porcentaje abajo (xs) */} 
-                <td className={`py-3 px-4 text-right ${asset.profit >= 0 ? 'text-[#6B8F71]' : 'text-[#C25B3F]'}`}>
+                <td className={`py-3 px-4 text-right ${asset.profit >= 0 ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
                   <div className="flex flex-col items-end">
                     <div className="text-sm font-bold flex items-center gap-1 font-mono">
                       {asset.profit >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
@@ -110,12 +110,12 @@ function Th({ label, field, current, dir, onSort, align = 'left' }: any) {
   return (
     <th 
       onClick={() => onSort(field)}
-      className={`py-4 px-4 text-xs font-bold uppercase tracking-widest text-[#8B8578] cursor-pointer hover:text-[#2C2C2C] transition-colors ${align === 'right' ? 'text-right' : 'text-left'}`}
+      className={`py-4 px-4 text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] cursor-pointer hover:text-[var(--text-primary)] transition-colors ${align === 'right' ? 'text-right' : 'text-left'}`}
     >
       <div className={`flex items-center gap-1 ${align === 'right' ? 'justify-end' : 'justify-start'}`}>
         {label}
         <div className="w-4 flex justify-center">
-          {isActive ? (dir === 'asc' ? <ChevronUp size={14} className="text-[#4A6FA5]" /> : <ChevronDown size={14} className="text-[#4A6FA5]" />) : null}
+          {isActive ? (dir === 'asc' ? <ChevronUp size={14} className="text-[var(--accent-blue)]" /> : <ChevronDown size={14} className="text-[var(--accent-blue)]" />) : null}
         </div>
       </div>
     </th>

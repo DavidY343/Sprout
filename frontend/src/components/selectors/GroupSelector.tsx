@@ -7,7 +7,7 @@ interface GroupBySelectorProps {
 
 export default function GroupBySelector({ value, onChange }: GroupBySelectorProps) {
   return (
-    <div className="flex space-x-1 bg-[#FAF7F0] rounded-lg p-1 border border-[#E5DED3]">
+    <div className="flex space-x-1 bg-[var(--bg-surface-alt)] rounded-lg p-1 border border-[var(--border)]">
       <button
         onClick={() => onChange('type')}
         className={value === 'type' ? button.pillActive : button.pillInactive}

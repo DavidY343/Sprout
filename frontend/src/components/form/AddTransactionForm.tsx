@@ -42,45 +42,45 @@ export default function AddTransactionForm({ onSuccess }: { onSuccess?: () => vo
 
   return (
     <div className={surface.card}>
-      <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2 text-sm text-[#5A5549]">
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2 text-sm text-[var(--text-secondary)]">
         {/* Tipo */}
         <button type="button" onClick={() => setFormData(p => ({ ...p, type: isIncome ? 'expense' : 'income' }))}
-          className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${isIncome ? 'bg-[#6B8F71]/15 text-[#6B8F71] border border-[#6B8F71]/30' : 'bg-[#C25B3F]/15 text-[#C25B3F] border border-[#C25B3F]/30'}`}>
+          className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${isIncome ? 'bg-[var(--accent-green)]/15 text-[var(--accent-green)] border border-[var(--accent-green)]/30' : 'bg-[var(--accent-red)]/15 text-[var(--accent-red)] border border-[var(--accent-red)]/30'}`}>
           {isIncome ? 'Ingreso' : 'Gasto'}
         </button>
 
-        <span className="text-[#B0A99C]">de</span>
+        <span className="text-[var(--text-placeholder)]">de</span>
 
         {/* Monto */}
-        <span className="text-[#8B8578]">€</span>
+        <span className="text-[var(--text-muted)]">€</span>
         <input type="number" min="0" step="any" value={formData.amount || ''}
           onChange={e => setFormData(p => ({ ...p, amount: Number(e.target.value) }))}
           placeholder="0.00"
-          className="w-20 bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] text-center font-mono focus:outline-none focus:border-[#4A6FA5] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+          className="w-20 bg-transparent border-b border-[var(--border-input)] text-[var(--text-primary)] text-center font-mono focus:outline-none focus:border-[var(--accent-blue)] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
 
-        <span className="text-[#B0A99C]">en</span>
+        <span className="text-[var(--text-placeholder)]">en</span>
 
         {/* Cuenta */}
         <select value={formData.account_id} onChange={e => setFormData(p => ({ ...p, account_id: Number(e.target.value) }))}
-          className="bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] focus:outline-none focus:border-[#4A6FA5] cursor-pointer max-w-[140px] truncate">
+          className="bg-transparent border-b border-[var(--border-input)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-blue)] cursor-pointer max-w-[140px] truncate">
           {accounts.map(a => <option key={a.account_id} value={a.account_id}>{a.name}</option>)}
         </select>
 
-        <span className="text-[#B0A99C]">el</span>
+        <span className="text-[var(--text-placeholder)]">el</span>
 
         {/* Fecha */}
         <input type="date" value={formData.date}
           onChange={e => setFormData(p => ({ ...p, date: e.target.value }))}
-          className="bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] focus:outline-none focus:border-[#4A6FA5]" />
+          className="bg-transparent border-b border-[var(--border-input)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-blue)]" />
 
         {/* Nota opcional */}
         <input type="text" value={formData.description || ''} placeholder="nota..."
           onChange={e => setFormData(p => ({ ...p, description: e.target.value }))}
-          className="ml-auto bg-transparent border-b border-[#D5CEC2] text-[#5A5549] focus:outline-none focus:border-[#4A6FA5] focus:text-[#2C2C2C] w-24 placeholder-[#D5CEC2]" />
+          className="ml-auto bg-transparent border-b border-[var(--border-input)] text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent-blue)] focus:text-[var(--text-primary)] w-24 placeholder-[var(--border-input)]" />
 
         {/* Submit */}
         <button type="submit" disabled={loading}
-          className="p-2 rounded-lg bg-[#2C2C2C] hover:bg-[#3D3D3D] text-[#FAF7F0] transition disabled:opacity-50 cursor-pointer">
+          className="p-2 rounded-lg bg-[var(--btn-primary-bg)] hover:bg-[var(--btn-primary-hover)] text-[var(--bg-surface-alt)] transition disabled:opacity-50 cursor-pointer">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
         </button>
       </form>

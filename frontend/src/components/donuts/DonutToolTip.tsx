@@ -18,14 +18,14 @@ const SimpleDonutTooltip: React.FC<SimpleDonutTooltipProps> = ({
 
   return (
     <div className={surface.tooltip + ' min-w-[220px]'}>
-      <p className="font-bold text-[#2C2C2C] text-lg mb-2 truncate max-w-[200px]">
+      <p className="font-bold text-[var(--text-primary)] text-lg mb-2 truncate max-w-[200px]">
         {item.name}
       </p>
       
       <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <span className="text-[#8B8578]">Valor:</span>
-          <span className="text-[#2C2C2C] font-medium">
+          <span className="text-[var(--text-muted)]">Valor:</span>
+          <span className="text-[var(--text-primary)] font-medium">
             € {Number(item.value).toLocaleString('es-ES', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2
@@ -34,14 +34,14 @@ const SimpleDonutTooltip: React.FC<SimpleDonutTooltipProps> = ({
         </div>
         
         <div className="flex justify-between items-center">
-          <span className="text-[#8B8578]">Porcentaje:</span>
-          <span className="text-[#2C2C2C] font-medium">{item.percentage}%</span>
+          <span className="text-[var(--text-muted)]">Porcentaje:</span>
+          <span className="text-[var(--text-primary)] font-medium">{item.percentage}%</span>
         </div>
         
-        <div className="pt-2 border-t border-[#E5DED3]">
+        <div className="pt-2 border-t border-[var(--border)]">
           <div className="flex justify-between items-center">
-            <span className="text-[#8B8578]">Total general:</span>
-            <span className="text-[#2C2C2C] font-medium">
+            <span className="text-[var(--text-muted)]">Total general:</span>
+            <span className="text-[var(--text-primary)] font-medium">
               € {Number(total).toLocaleString('es-ES', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2

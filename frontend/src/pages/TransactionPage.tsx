@@ -19,15 +19,15 @@ export default function TransactionsPage() {
     finally { setLoading(false) }
   }
 
-  if (loading) return <div className="flex justify-center p-20 text-[#8B8578]">Cargando...</div>
+  if (loading) return <div className="flex justify-center p-20 text-[var(--text-muted)]">Cargando...</div>
 
   return (
     <div className={layout.pageStack}>
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-[#2C2C2C]">Balances</h1>
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Balances</h1>
         <button onClick={() => setShowForm(!showForm)}
-          className="p-2 rounded-lg bg-[#2C2C2C] hover:bg-[#3D3D3D] text-[#FAF7F0] transition cursor-pointer">
+          className="p-2 rounded-lg bg-[var(--btn-primary-bg)] hover:bg-[var(--btn-primary-hover)] text-[var(--bg-surface-alt)] transition cursor-pointer">
           <Plus className="w-5 h-5" />
         </button>
       </div>
@@ -40,7 +40,7 @@ export default function TransactionsPage() {
       {/* Tabla */}
       <div className={surface.tableContainer}>
         {transactions.length === 0 ? (
-          <div className="p-12 text-center text-[#8B8578]">Sin movimientos</div>
+          <div className="p-12 text-center text-[var(--text-muted)]">Sin movimientos</div>
         ) : (
           <table className={table.wrapper}>
             <thead className={table.headRow}>
@@ -54,11 +54,11 @@ export default function TransactionsPage() {
             <tbody>
               {transactions.map(t => (
                 <tr key={t.transaction_id} className={table.bodyRow}>
-                  <td className={table.cell + ' text-sm text-[#8B8578]'}>{new Date(t.date).toLocaleDateString('es-ES')}</td>
-                  <td className={table.cell + ' text-sm text-[#5A5549]'}>{t.account_name}</td>
-                  <td className={table.cell + ' text-sm text-[#2C2C2C]'}>{t.description || t.category}</td>
+                  <td className={table.cell + ' text-sm text-[var(--text-muted)]'}>{new Date(t.date).toLocaleDateString('es-ES')}</td>
+                  <td className={table.cell + ' text-sm text-[var(--text-secondary)]'}>{t.account_name}</td>
+                  <td className={table.cell + ' text-sm text-[var(--text-primary)]'}>{t.description || t.category}</td>
                   <td className={table.cell + ' text-right'}>
-                    <span className={`text-sm font-mono font-semibold ${t.type === 'income' ? 'text-[#6B8F71]' : 'text-[#C25B3F]'}`}>
+                    <span className={`text-sm font-mono font-semibold ${t.type === 'income' ? 'text-[var(--accent-green)]' : 'text-[var(--accent-red)]'}`}>
                       {t.type === 'income' ? '+' : '-'}€{t.amount.toLocaleString('es-ES')}
                     </span>
                   </td>

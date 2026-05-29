@@ -63,39 +63,39 @@ const handleRegister = async (e: React.FormEvent) => {
   }
 };
   return (
-    <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[var(--bg-body)] flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         
         {/* Columna izquierda - Info */}
         <div className="space-y-8">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-[#E5DED3]">
+            <div className="p-2 rounded-lg bg-[var(--border)]">
               <img src="/favicon-32x32.png" alt="Sprout Logo" className="w-8 h-8 object-contain" />
             </div>
-            <h1 className="text-3xl font-bold text-[#2C2C2C]">Sprout - Financial Hub</h1>
+            <h1 className="text-3xl font-bold text-[var(--text-primary)]">Sprout - Financial Hub</h1>
           </div>
 
-          <h2 className="text-4xl font-bold text-[#2C2C2C] leading-tight">
+          <h2 className="text-4xl font-bold text-[var(--text-primary)] leading-tight">
             Gestiona tu portfolio<br />
-            <span className="text-[#4A6FA5]">
+            <span className="text-[var(--accent-blue)]">
               de forma inteligente
             </span>
           </h2>
 
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-[#4A6FA5]/10">
-                <PieChart className="w-5 h-5 text-[#4A6FA5]" />
+              <div className="p-2 rounded-full bg-[var(--accent-blue)]/10">
+                <PieChart className="w-5 h-5 text-[var(--accent-blue)]" />
               </div>
-              <p className="text-[#5A5549]">
+              <p className="text-[var(--text-secondary)]">
                 Visualización avanzada de tu distribución de activos
               </p>  
             </div>
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-[#6B8F71]/10">
-                <TrendingUp className="w-5 h-5 text-[#6B8F71]" />
+              <div className="p-2 rounded-full bg-[var(--accent-green)]/10">
+                <TrendingUp className="w-5 h-5 text-[var(--accent-green)]" />
               </div>
-              <p className="text-[#5A5549]">
+              <p className="text-[var(--text-secondary)]">
                 Seguimiento de rendimiento en tiempo real
               </p>
             </div>
@@ -103,14 +103,14 @@ const handleRegister = async (e: React.FormEvent) => {
               <div className="p-2 rounded-full bg-[#C4A35A]/10">
                 <Shield className="w-5 h-5 text-[#C4A35A]" />
               </div>
-              <p className="text-[#5A5549]">
+              <p className="text-[var(--text-secondary)]">
                 Seguridad bancaria con cifrado de extremo a extremo
               </p>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-[#E5DED3]">
-            <p className="text-sm text-[#8B8578]">
+          <div className="pt-6 border-t border-[var(--border)]">
+            <p className="text-sm text-[var(--text-muted)]">
               Únete a miles de inversores que ya gestionan sus portfolios con nosotros
             </p>
           </div>
@@ -120,14 +120,14 @@ const handleRegister = async (e: React.FormEvent) => {
         <div className="relative">
           <div className={surface.heroPanel + ' shadow-md'}>
             {error && (
-              <div className="mb-4 p-3 rounded-lg bg-[#C25B3F]/10 border border-[#C25B3F]/30 text-[#C25B3F] text-sm">
+              <div className="mb-4 p-3 rounded-lg bg-[var(--accent-red)]/10 border border-[var(--accent-red)]/30 text-[var(--accent-red)] text-sm">
                 {error}
               </div>
             )}
             {showRegister ? (
               <>
-                <h3 className="text-2xl font-bold text-[#2C2C2C] mb-2">Crear cuenta</h3>
-                <p className="text-[#8B8578] mb-6">
+                <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Crear cuenta</h3>
+                <p className="text-[var(--text-muted)] mb-6">
                   Regístrate para empezar a gestionar tu portfolio
                 </p>
 
@@ -183,12 +183,12 @@ const handleRegister = async (e: React.FormEvent) => {
                   </button>
                 </form>
 
-                <div className="mt-6 pt-6 border-t border-[#E5DED3]">
-                  <p className="text-sm text-[#8B8578] text-center">
+                <div className="mt-6 pt-6 border-t border-[var(--border)]">
+                  <p className="text-sm text-[var(--text-muted)] text-center">
                     ¿Ya tienes cuenta?{' '}
                     <button
                       onClick={() => setShowRegister(false)}
-                      className="text-[#4A6FA5] hover:text-[#3A5F95] font-medium"
+                      className="text-[var(--accent-blue)] hover:text-[#3A5F95] font-medium"
                     >
                       Iniciar sesión
                     </button>
@@ -197,8 +197,8 @@ const handleRegister = async (e: React.FormEvent) => {
               </>
             ) : (
               <>
-                <h3 className="text-2xl font-bold text-[#2C2C2C] mb-2">Iniciar sesión</h3>
-                <p className="text-[#8B8578] mb-6">
+                <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Iniciar sesión</h3>
+                <p className="text-[var(--text-muted)] mb-6">
                   Accede a tu dashboard personalizado
                 </p>
 
@@ -240,16 +240,16 @@ const handleRegister = async (e: React.FormEvent) => {
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
-                    <label className="flex items-center gap-2 text-[#5A5549]">
+                    <label className="flex items-center gap-2 text-[var(--text-secondary)]">
                       <input
                         type="checkbox"
-                        className="rounded bg-[#FAF7F0] border-[#D5CEC2]"
+                        className="rounded bg-[var(--bg-surface-alt)] border-[var(--border-input)]"
                       />
                       Recordarme
                     </label>
                     <button
                       type="button"
-                      className="text-[#4A6FA5] hover:text-[#3A5F95]"
+                      className="text-[var(--accent-blue)] hover:text-[#3A5F95]"
                     >
                       ¿Olvidaste tu contraseña?
                     </button>
@@ -264,12 +264,12 @@ const handleRegister = async (e: React.FormEvent) => {
                   </button>
                 </form>
 
-                <div className="mt-6 pt-6 border-t border-[#E5DED3]">
-                  <p className="text-sm text-[#8B8578] text-center">
+                <div className="mt-6 pt-6 border-t border-[var(--border)]">
+                  <p className="text-sm text-[var(--text-muted)] text-center">
                     ¿No tienes cuenta?{' '}
                     <button
                       onClick={() => setShowRegister(true)}
-                      className="text-[#4A6FA5] hover:text-[#3A5F95] font-medium"
+                      className="text-[var(--accent-blue)] hover:text-[#3A5F95] font-medium"
                     >
                       Regístrate aquí
                     </button>

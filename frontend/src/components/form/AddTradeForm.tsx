@@ -62,7 +62,7 @@ export default function AddTradeForm({ onSuccess }: AddTradeFormProps) {
     finally { setLoading(false) }
   };
 
-  if (loadingData) return <div className={surface.card + ' flex justify-center py-4'}><Loader2 className="w-5 h-5 animate-spin text-[#4A6FA5]" /></div>;
+  if (loadingData) return <div className={surface.card + ' flex justify-center py-4'}><Loader2 className="w-5 h-5 animate-spin text-[var(--accent-blue)]" /></div>;
 
   const total = formData.quantity * formData.price;
   const isBuy = formData.operation_type === 'buy';
@@ -72,57 +72,57 @@ export default function AddTradeForm({ onSuccess }: AddTradeFormProps) {
 
   return (
     <div className={surface.card}>
-      <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2 text-sm text-[#5A5549]">
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2 text-sm text-[var(--text-secondary)]">
         {/* Tipo */}
         <button type="button" onClick={() => setFormData(p => ({ ...p, operation_type: isBuy ? 'sell' : 'buy' }))}
-          className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${isBuy ? 'bg-[#6B8F71]/15 text-[#6B8F71] border border-[#6B8F71]/30' : 'bg-[#C25B3F]/15 text-[#C25B3F] border border-[#C25B3F]/30'}`}>
+          className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${isBuy ? 'bg-[var(--accent-green)]/15 text-[var(--accent-green)] border border-[var(--accent-green)]/30' : 'bg-[var(--accent-red)]/15 text-[var(--accent-red)] border border-[var(--accent-red)]/30'}`}>
           {isBuy ? 'Comprar' : 'Vender'}
         </button>
 
         {/* Cantidad */}
         <input type="number" min="0" step="any" value={formData.quantity}
           onChange={e => setFormData(p => ({ ...p, quantity: parseFloat(e.target.value) || 0 }))}
-          className="w-16 bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] text-center font-mono focus:outline-none focus:border-[#4A6FA5] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+          className="w-16 bg-transparent border-b border-[var(--border-input)] text-[var(--text-primary)] text-center font-mono focus:outline-none focus:border-[var(--accent-blue)] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
 
-        <span className="text-[#B0A99C]">×</span>
+        <span className="text-[var(--text-placeholder)]">×</span>
 
         {/* Activo */}
         <select value={formData.asset_id} onChange={e => handleAssetChange(parseInt(e.target.value))}
-          className="bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] font-medium focus:outline-none focus:border-[#4A6FA5] cursor-pointer max-w-[160px] truncate">
+          className="bg-transparent border-b border-[var(--border-input)] text-[var(--text-primary)] font-medium focus:outline-none focus:border-[var(--accent-blue)] cursor-pointer max-w-[160px] truncate">
           {assets.map(a => <option key={a.asset_id} value={a.asset_id}>{a.ticker || a.name}</option>)}
         </select>
 
-        <span className="text-[#B0A99C]">en</span>
+        <span className="text-[var(--text-placeholder)]">en</span>
 
         {/* Cuenta */}
         <select value={formData.account_id} onChange={e => setFormData(p => ({ ...p, account_id: parseInt(e.target.value) }))}
-          className="bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] focus:outline-none focus:border-[#4A6FA5] cursor-pointer max-w-[140px] truncate">
+          className="bg-transparent border-b border-[var(--border-input)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-blue)] cursor-pointer max-w-[140px] truncate">
           {accounts.map(a => <option key={a.account_id} value={a.account_id}>{a.name}</option>)}
         </select>
 
-        <span className="text-[#B0A99C]">el</span>
+        <span className="text-[var(--text-placeholder)]">el</span>
 
         {/* Fecha */}
         <input type="date" value={formData.date}
           onChange={e => setFormData(p => ({ ...p, date: e.target.value }))}
-          className="bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] focus:outline-none focus:border-[#4A6FA5]" />
+          className="bg-transparent border-b border-[var(--border-input)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-blue)]" />
 
         {/* Separador + precio/total */}
-        <span className="text-[#B0A99C] ml-auto">a</span>
+        <span className="text-[var(--text-placeholder)] ml-auto">a</span>
         <div className="relative flex items-center">
-          <span className="absolute left-1 text-[#8B8578] font-mono text-sm pointer-events-none">€</span>
+          <span className="absolute left-1 text-[var(--text-muted)] font-mono text-sm pointer-events-none">€</span>
           <input type="number" min="0" step="any" value={formData.price || ''}
             onChange={e => setFormData(p => ({ ...p, price: parseFloat(e.target.value) || 0 }))}
             placeholder="Precio"
-            className="w-24 pl-4 bg-transparent border-b border-[#D5CEC2] text-[#2C2C2C] font-mono text-right focus:outline-none focus:border-[#4A6FA5] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+            className="w-24 pl-4 bg-transparent border-b border-[var(--border-input)] text-[var(--text-primary)] font-mono text-right focus:outline-none focus:border-[var(--accent-blue)] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
         </div>
-        <span className="text-[#B0A99C]">→</span>
-        <span className={`font-mono font-semibold ${insufficientFunds ? 'text-[#C25B3F]' : 'text-[#2C2C2C]'}`}>€{total.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
-        {insufficientFunds && <span className="text-xs text-[#C25B3F]">Cash: €{cashBalance.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>}
+        <span className="text-[var(--text-placeholder)]">→</span>
+        <span className={`font-mono font-semibold ${insufficientFunds ? 'text-[var(--accent-red)]' : 'text-[var(--text-primary)]'}`}>€{total.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+        {insufficientFunds && <span className="text-xs text-[var(--accent-red)]">Cash: €{cashBalance.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>}
 
         {/* Submit */}
         <button type="submit" disabled={loading || insufficientFunds}
-          className="ml-2 p-2 rounded-lg bg-[#2C2C2C] hover:bg-[#3D3D3D] text-[#FAF7F0] transition disabled:opacity-50 cursor-pointer">
+          className="ml-2 p-2 rounded-lg bg-[var(--btn-primary-bg)] hover:bg-[var(--btn-primary-hover)] text-[var(--bg-surface-alt)] transition disabled:opacity-50 cursor-pointer">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
         </button>
       </form>

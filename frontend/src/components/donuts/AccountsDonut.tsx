@@ -154,7 +154,7 @@ export default function AccountsDonut({
                   className={donut.legendDot}
                   style={{ backgroundColor: item.color }}
                 />
-                <span className="text-sm font-medium text-[#2C2C2C] truncate">
+                <span className="text-sm font-medium text-[var(--text-primary)] truncate">
                   {item.name}
                 </span>
               </div>
@@ -176,18 +176,18 @@ export default function AccountsDonut({
             <div className={donut.legendItem}>
               {/* Izquierda: Color + Nombre */}
               <div className={donut.legendLeft}>
-                <div className="w-4 h-4 rounded-full flex-shrink-0 bg-[#B0A99C]" />
-                <span className="text-sm font-medium text-[#5A5549] truncate">
+                <div className="w-4 h-4 rounded-full flex-shrink-0 bg-[var(--text-placeholder)]" />
+                <span className="text-sm font-medium text-[var(--text-secondary)] truncate">
                   Otros ({remainingItems.length} categorías)
                 </span>
               </div>
               
               {/* Derecha: Precio + Porcentaje */}
               <div className={donut.legendRight}>
-                <span className="text-[#5A5549] font-semibold text-sm whitespace-nowrap">
+                <span className="text-[var(--text-secondary)] font-semibold text-sm whitespace-nowrap">
                   €{remainingTotal.toLocaleString('es-ES', { minimumFractionDigits: 0 })}
                 </span>
-                <span className="text-[#8B8578] font-semibold text-sm whitespace-nowrap">
+                <span className="text-[var(--text-muted)] font-semibold text-sm whitespace-nowrap">
                   {remainingPercentage}%
                 </span>
               </div>

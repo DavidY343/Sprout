@@ -70,17 +70,17 @@ export default function PortfolioPage({ view, setView }: PortfolioPageProps) {
       )}
 
       {/* Sidebar drawer */}
-      <div className={`fixed top-0 left-0 h-full w-56 bg-[#2C2C2C] border-r border-[#3D3D3D] z-50 transform transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between p-4 border-b border-[#3D3D3D]">
-          <span className="text-sm font-semibold text-[#FAF7F0] tracking-wide">Dashboard</span>
-          <button onClick={() => setSidebarOpen(false)} className="p-1 text-[#B0A99C] hover:text-[#FAF7F0] cursor-pointer">
+      <div className={`fixed top-0 left-0 h-full w-56 bg-[var(--btn-primary-bg)] border-r border-[var(--btn-primary-hover)] z-50 transform transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center justify-between p-4 border-b border-[var(--btn-primary-hover)]">
+          <span className="text-sm font-semibold text-[var(--bg-surface-alt)] tracking-wide">Dashboard</span>
+          <button onClick={() => setSidebarOpen(false)} className="p-1 text-[var(--text-placeholder)] hover:text-[var(--bg-surface-alt)] cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
         <nav className="p-3 space-y-1">
           {NAV_ITEMS.map(item => (
             <button key={item.id} onClick={() => handleNav(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition cursor-pointer ${view === item.id ? 'bg-[#4A6FA5]/20 text-[#4A6FA5]' : 'text-[#B0A99C] hover:text-[#FAF7F0] hover:bg-[#3D3D3D]'}`}>
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition cursor-pointer ${view === item.id ? 'bg-[var(--accent-blue)]/20 text-[var(--accent-blue)]' : 'text-[var(--text-placeholder)] hover:text-[var(--bg-surface-alt)] hover:bg-[var(--btn-primary-hover)]'}`}>
               {item.icon}
               {item.label}
             </button>
@@ -92,7 +92,7 @@ export default function PortfolioPage({ view, setView }: PortfolioPageProps) {
       <div className={layout.pageStack}>
         {/* Hamburger button */}
         <button onClick={() => setSidebarOpen(true)}
-          className="self-start p-2 rounded-lg border border-[#E5DED3] text-[#8B8578] hover:text-[#2C2C2C] hover:border-[#D5CEC2] transition cursor-pointer">
+          className="self-start p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--border-input)] transition cursor-pointer">
           <Menu className="w-5 h-5" />
         </button>
 
@@ -134,7 +134,7 @@ export default function PortfolioPage({ view, setView }: PortfolioPageProps) {
                   <h2 className={text.sectionTitle}>Evolución del Patrimonio</h2>
                   <p className={text.sectionDesc}>Valor total de la cartera en el tiempo</p>
                 </div>
-                <div className="flex p-1 bg-[#FAF7F0] rounded-lg border border-[#E5DED3] self-start">
+                <div className="flex p-1 bg-[var(--bg-surface-alt)] rounded-lg border border-[var(--border)] self-start">
                   <button onClick={() => setHistoryAccountId('all')}
                     className={historyAccountId === 'all' ? button.tabActive : button.tabInactive}>General</button>
                   {accounts.map(acc => (

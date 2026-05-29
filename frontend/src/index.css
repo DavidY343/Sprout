@@ -1,23 +1,102 @@
 @import "tailwindcss";
 
-/* Le Corbusier light theme — global overrides */
+/* ═══════════════════════════════════════════
+   COLOR TOKENS — Light (default)
+   ═══════════════════════════════════════════ */
+:root {
+  --bg-body: #F5F0E8;
+  --bg-surface: #FFFFFF;
+  --bg-surface-alt: #FAF7F0;
+  --bg-surface-hover: #F0EBE3;
+  --bg-input: #FAF7F0;
+
+  --border: #E5DED3;
+  --border-input: #D5CEC2;
+  --border-focus: #4A6FA5;
+
+  --text-primary: #2C2C2C;
+  --text-secondary: #5A5549;
+  --text-muted: #8B8578;
+  --text-placeholder: #B0A99C;
+  --text-on-dark: #FAF7F0;
+
+  --accent-blue: #4A6FA5;
+  --accent-green: #6B8F71;
+  --accent-red: #C25B3F;
+  --accent-gold: #C4A35A;
+
+  --btn-primary-bg: #2C2C2C;
+  --btn-primary-hover: #3D3D3D;
+  --btn-secondary-bg: #E5DED3;
+  --btn-secondary-hover: #D5CEC2;
+
+  --scrollbar-track: #F5F0E8;
+  --scrollbar-thumb: #D5CEC2;
+  --scrollbar-hover: #B0A99C;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+}
+
+/* ═══════════════════════════════════════════
+   COLOR TOKENS — Dark
+   ═══════════════════════════════════════════ */
+.dark {
+  --bg-body: #1A1A1A;
+  --bg-surface: #242424;
+  --bg-surface-alt: #2C2C2C;
+  --bg-surface-hover: #333333;
+  --bg-input: #2C2C2C;
+
+  --border: #3D3D3D;
+  --border-input: #4A4A4A;
+  --border-focus: #6B9BD2;
+
+  --text-primary: #E8E2D8;
+  --text-secondary: #C0B8A8;
+  --text-muted: #8B8578;
+  --text-placeholder: #6B6560;
+  --text-on-dark: #1A1A1A;
+
+  --accent-blue: #6B9BD2;
+  --accent-green: #8BB592;
+  --accent-red: #D4765E;
+  --accent-gold: #D4B96A;
+
+  --btn-primary-bg: #E8E2D8;
+  --btn-primary-hover: #D5CEC2;
+  --btn-secondary-bg: #3D3D3D;
+  --btn-secondary-hover: #4A4A4A;
+
+  --scrollbar-track: #1A1A1A;
+  --scrollbar-thumb: #4A4A4A;
+  --scrollbar-hover: #5A5A5A;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+}
+
+/* Apply body colors */
 html {
-  background-color: #F5F0E8;
-  color: #2C2C2C;
+  background-color: var(--bg-body);
+  color: var(--text-primary);
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #F5F0E8; }
-::-webkit-scrollbar-thumb { background: #D5CEC2; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #B0A99C; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
 
-/* Select/option backgrounds for light mode */
-option { background: #FFFFFF; color: #2C2C2C; }
+/* Select/option backgrounds */
+option { background: var(--bg-surface); color: var(--text-primary); }
 
-/* Date input icon */
+/* Date input icon — invert in dark mode */
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: none;
+}
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
 }
 
 /* Settings panel slide-in */

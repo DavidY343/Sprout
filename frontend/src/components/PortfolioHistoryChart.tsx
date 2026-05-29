@@ -47,7 +47,7 @@ export default function PortfolioHistoryChart({ accountId }: Props) {
     fetchHistory();
   }, [accountId]); // Se recarga cuando cambia el ID de cuenta
 
-  if (loading) return <div className="h-80 flex items-center justify-center text-[#8B8578]">Cargando historial...</div>;
+  if (loading) return <div className="h-80 flex items-center justify-center text-[var(--text-muted)]">Cargando historial...</div>;
 
   return (
     <div className="h-full w-full">

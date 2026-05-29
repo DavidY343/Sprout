@@ -66,7 +66,7 @@ export default function HelpGuide({ activeTab, portfolioView }: HelpGuideProps) 
       {/* Botón flotante */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-[#4A6FA5] hover:bg-[#3D5F8F] text-white shadow-lg flex items-center justify-center transition cursor-pointer"
+        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-[var(--accent-blue)] hover:bg-[#3D5F8F] text-white shadow-lg flex items-center justify-center transition cursor-pointer"
         aria-label="Ayuda"
       >
         <HelpCircle className="w-6 h-6" />
@@ -79,20 +79,20 @@ export default function HelpGuide({ activeTab, portfolioView }: HelpGuideProps) 
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setOpen(false)} />
 
           {/* Panel */}
-          <div className="relative bg-white rounded-2xl border border-[#E5DED3] shadow-xl max-w-md w-full p-6 space-y-4 animate-in fade-in">
+          <div className="relative bg-[var(--bg-surface)] rounded-2xl border border-[var(--border)] shadow-xl max-w-md w-full p-6 space-y-4 animate-in fade-in">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[#2C2C2C]">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
                 Guía — {guide.title}
               </h2>
-              <button onClick={() => setOpen(false)} className="p-1 rounded-lg hover:bg-[#F5F0E8] transition cursor-pointer">
-                <X className="w-5 h-5 text-[#8B8578]" />
+              <button onClick={() => setOpen(false)} className="p-1 rounded-lg hover:bg-[var(--bg-body)] transition cursor-pointer">
+                <X className="w-5 h-5 text-[var(--text-muted)]" />
               </button>
             </div>
 
             <ul className="space-y-3">
               {guide.items.map((item, i) => (
-                <li key={i} className="flex gap-3 text-sm text-[#5A5549]">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#4A6FA5]/10 text-[#4A6FA5] text-xs font-semibold flex items-center justify-center">
+                <li key={i} className="flex gap-3 text-sm text-[var(--text-secondary)]">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] text-xs font-semibold flex items-center justify-center">
                     {i + 1}
                   </span>
                   {item}
@@ -100,7 +100,7 @@ export default function HelpGuide({ activeTab, portfolioView }: HelpGuideProps) 
               ))}
             </ul>
 
-            <p className="text-xs text-[#B0A99C] pt-2 border-t border-[#E5DED3]">
+            <p className="text-xs text-[var(--text-placeholder)] pt-2 border-t border-[var(--border)]">
               Pulsa fuera o la X para cerrar.
             </p>
           </div>
