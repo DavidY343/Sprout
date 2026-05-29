@@ -33,24 +33,24 @@ const guides: Record<string, { title: string; items: string[] }> = {
     ],
   },
   trades: {
-    title: 'Trades',
+    title: 'Operaciones',
     items: [
       'Registra tus compras y ventas de activos pulsando el botón "+".',
       'Selecciona Comprar/Vender, la cantidad, el activo, la cuenta y la fecha.',
       'Puedes editar el precio de compra manualmente (no tiene por qué ser el precio actual).',
       'El total se calcula automáticamente: cantidad × precio.',
-      'Para editar un trade existente, pulsa sobre la fila en la tabla.',
-      'Cada trade genera automáticamente un movimiento de efectivo en la cuenta correspondiente.',
+      'Para editar una operación existente, pulsa sobre la fila en la tabla.',
+      'Cada operación genera automáticamente un movimiento de efectivo en la cuenta correspondiente.',,
     ],
   },
   transactions: {
-    title: 'Transacciones',
+    title: 'Balances',
     items: [
       'Aquí gestionas los movimientos de efectivo: depósitos, retiradas y otros gastos.',
       'Pulsa "+" para añadir una nueva transacción.',
       'Los depósitos (income) aumentan tu cash disponible para invertir.',
       'Las retiradas (expense) reducen tu balance de efectivo.',
-      'Las transacciones de trades se crean automáticamente al registrar un trade.',
+      'Las transacciones de operaciones se crean automáticamente al registrar una operación.',
     ],
   },
 }

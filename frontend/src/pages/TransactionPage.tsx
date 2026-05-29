@@ -25,7 +25,7 @@ export default function TransactionsPage() {
     <div className={layout.pageStack}>
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-[#2C2C2C]">Cash Flow</h1>
+        <h1 className="text-2xl font-semibold text-[#2C2C2C]">Balances</h1>
         <button onClick={() => setShowForm(!showForm)}
           className="p-2 rounded-lg bg-[#2C2C2C] hover:bg-[#3D3D3D] text-[#FAF7F0] transition cursor-pointer">
           <Plus className="w-5 h-5" />
