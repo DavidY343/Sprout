@@ -4,7 +4,7 @@ import { AccountWithBalance, Account, AccountCreate } from './../types/account'
 export async function getAccountsWithBalance(): Promise<AccountWithBalance[]> {
   
   try {
-    const data = await apiGet<AccountWithBalance[]>(`/portfolio/accounts/`, true)
+    const data = await apiGet<AccountWithBalance[]>(`/portfolio/accounts`, true)
     return data
   } catch (error) {
     console.error('Error fetching accounts:', error)
