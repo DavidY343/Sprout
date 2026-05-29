@@ -98,6 +98,10 @@ async def update_operation(db: AsyncSession, operation_id: int, update_data: Ope
     if not operation:
         raise ValueError("Operation not found or doesn't belong to user")
 
+    # Get asset name for description update
+    asset_result = await db.execute(select(Asset).where(Asset.asset_id == operation.asset_id))
+    asset = asset_result.scalar_one_or_none()
+
     # Save original values for transaction lookup
     original_amount = operation.quantity * operation.price
     original_fees = operation.fees or 0
@@ -109,6 +113,34 @@ async def update_operation(db: AsyncSession, operation_id: int, update_data: Ope
     update_dict = update_data.model_dump(exclude_unset=True, exclude_none=True)
     for key, value in update_dict.items():
         setattr(operation, key, value)
+
+    # Insufficient funds check: verify the account can cover the updated trade
+    new_is_buy = operation.operation_type == 'buy'
+    new_amount = operation.quantity * operation.price
+    new_fees = operation.fees or 0
+    new_total = (new_amount + new_fees) if new_is_buy else (new_amount - new_fees)
+
+    # Calculate the cash impact delta
+    # Original tx impact on cash: expense = -amount, income = +amount
+    original_cash_impact = -original_total if original_is_buy else original_total
+    new_cash_impact = -new_total if new_is_buy else new_total
+    # How much additional cash is consumed (negative means more cash consumed)
+    cash_delta = new_cash_impact - original_cash_impact
+
+    if cash_delta < 0:
+        # Need to verify the account has enough cash to cover the increase
+        cash_result = await db.execute(
+            text("""
+                SELECT COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END), 0)
+                FROM transactions
+                WHERE account_id = :account_id AND is_active = TRUE
+            """),
+            {"account_id": operation.account_id}
+        )
+        current_cash = float(cash_result.scalar())
+        projected_cash = current_cash + cash_delta
+        if projected_cash < 0:
+            raise ValueError(f"Fondos insuficientes. Efectivo disponible: {current_cash:.2f}€, necesario adicional: {abs(cash_delta):.2f}€")
 
     # Find and update the associated cash transaction
     # Match by account, category, date, and original amount
@@ -135,6 +167,8 @@ async def update_operation(db: AsyncSession, operation_id: int, update_data: Ope
         transaction.amount = total_amount
         transaction.type = "expense" if is_buy else "income"
         transaction.date = operation.date
+        asset_name = asset.name if asset else "Unknown"
+        transaction.description = f"{operation.operation_type.upper()} {operation.quantity} {asset_name}"
 
     # Update price_history with the new price
     stmt_upsert = insert(PriceHistory).values(

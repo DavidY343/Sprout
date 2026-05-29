@@ -11,6 +11,7 @@ export default function TradesPage() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editData, setEditData] = useState<OperationUpdate>({})
+  const [editError, setEditError] = useState<string | null>(null)
 
   useEffect(() => { fetchTradeHistory() }, [])
 
@@ -23,6 +24,7 @@ export default function TradesPage() {
 
   const startEdit = (trade: TradeHistory) => {
     setEditingId(trade.operation_id)
+    setEditError(null)
     setEditData({
       date: trade.date.split('T')[0],
       quantity: trade.quantity,
@@ -32,15 +34,19 @@ export default function TradesPage() {
     })
   }
 
-  const cancelEdit = () => { setEditingId(null); setEditData({}) }
+  const cancelEdit = () => { setEditingId(null); setEditData({}); setEditError(null) }
 
   const saveEdit = async () => {
     if (!editingId) return
+    setEditError(null)
     try {
       await updateTrade(editingId, editData)
       await fetchTradeHistory()
       setEditingId(null); setEditData({})
-    } catch { /* */ }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Error al actualizar la operación'
+      setEditError(msg)
+    }
   }
 
   if (loading) return <div className="flex justify-center items-center min-h-[60vh] text-[#8B8578]">Cargando...</div>
@@ -102,9 +108,12 @@ export default function TradesPage() {
                         className="w-20 bg-transparent border-b border-[#4A6FA5] text-sm text-[#2C2C2C] font-mono text-right focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
                     </td>
                     <td className={table.cell + ' text-right'}>
-                      <div className="flex items-center justify-end gap-1">
-                        <button onClick={saveEdit} className="p-1 rounded hover:bg-[#6B8F71]/20 text-[#6B8F71] cursor-pointer"><Check className="w-4 h-4" /></button>
-                        <button onClick={cancelEdit} className="p-1 rounded hover:bg-[#C25B3F]/20 text-[#C25B3F] cursor-pointer"><X className="w-4 h-4" /></button>
+                      <div className="flex flex-col items-end gap-1">
+                        <div className="flex items-center gap-1">
+                          <button onClick={saveEdit} className="p-1 rounded hover:bg-[#6B8F71]/20 text-[#6B8F71] cursor-pointer"><Check className="w-4 h-4" /></button>
+                          <button onClick={cancelEdit} className="p-1 rounded hover:bg-[#C25B3F]/20 text-[#C25B3F] cursor-pointer"><X className="w-4 h-4" /></button>
+                        </div>
+                        {editError && <span className="text-xs text-[#C25B3F] max-w-[180px] text-right">{editError}</span>}
                       </div>
                     </td>
                   </tr>
