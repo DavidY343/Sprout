@@ -16,6 +16,7 @@ class TransactionCreate(TransactionBase):
 class TransactionResponse(TransactionBase):
     transaction_id: int
     created_at: datetime
+    account_name: str
 
     class Config:
         from_attributes = True

@@ -18,6 +18,10 @@ class Transaction(Base):
     
     # Relationships
     account = relationship("Account", back_populates="transactions")
+
+    @property
+    def account_name(self):
+        return self.account.name if self.account else ""
     
     __table_args__ = (
         CheckConstraint("type IN ('income', 'expense')", name="chk_transaction_type"),

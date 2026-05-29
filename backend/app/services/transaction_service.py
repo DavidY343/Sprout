@@ -1,6 +1,7 @@
 from app.models.transaction import Transaction
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from app.models.account import Account
 from app.schemas.transaction import TransactionCreate
 from fastapi import HTTPException
@@ -48,10 +49,12 @@ async def create_transaction(db: AsyncSession, transaction_data: TransactionCrea
         type=transaction_data.type,
         description=transaction_data.description
     )
+    new_transaction.account = account
     
     db.add(new_transaction)
     await db.commit()
     await db.refresh(new_transaction)
+    new_transaction.account = account
     return new_transaction
 
 async def get_user_transactions(db: AsyncSession, user_id: int):
@@ -59,6 +62,7 @@ async def get_user_transactions(db: AsyncSession, user_id: int):
     stmt = (
         select(Transaction)
         .join(Account)
+        .options(selectinload(Transaction.account))
         .where(Account.user_id == user_id)
         .order_by(Transaction.date.desc())
     )

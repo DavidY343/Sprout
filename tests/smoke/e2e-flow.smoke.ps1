@@ -228,7 +228,12 @@ try {
 
 try {
     $txList = Invoke-API -Method GET -Path '/transactions/me' -Token $token
-    Assert-GTE "Transactions registered" $txList.Count 2
+    $txListItems = @($txList)
+    Assert-GTE "Transactions registered" $txListItems.Count 2
+    $accountNames = $txListItems | ForEach-Object { $_.account_name }
+    if ($accountNames -notcontains $accA.name -or $accountNames -notcontains $accB.name) {
+        throw "Transactions response is missing one of the account names"
+    }
 } catch {
     Log-FAIL "List transactions failed: $_"
 }

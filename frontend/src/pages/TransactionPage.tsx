@@ -46,6 +46,7 @@ export default function TransactionsPage() {
             <thead className={table.headRow}>
               <tr>
                 <th className={table.headCell}>Fecha</th>
+                <th className={table.headCell}>Cuenta</th>
                 <th className={table.headCell}>Descripción</th>
                 <th className={table.headCell + ' text-right'}>Monto</th>
               </tr>
@@ -54,6 +55,7 @@ export default function TransactionsPage() {
               {transactions.map(t => (
                 <tr key={t.transaction_id} className={table.bodyRow}>
                   <td className={table.cell + ' text-sm text-[#8B8578]'}>{new Date(t.date).toLocaleDateString('es-ES')}</td>
+                  <td className={table.cell + ' text-sm text-[#5A5549]'}>{t.account_name}</td>
                   <td className={table.cell + ' text-sm text-[#2C2C2C]'}>{t.description || t.category}</td>
                   <td className={table.cell + ' text-right'}>
                     <span className={`text-sm font-mono font-semibold ${t.type === 'income' ? 'text-[#6B8F71]' : 'text-[#C25B3F]'}`}>
