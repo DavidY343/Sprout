@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { X, Building2, TrendingUp, Globe } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Building2, TrendingUp, Globe, Trash2 } from 'lucide-react';
 import AccountCreationForm from './form/AccountCreationForm';
 import AssetCreationForm from './form/AssetCreationForm';
 import { surface, text } from '../styles/theme';
+import { getAssetsWithPrices, AssetWithPrice, removeAsset } from '../services/assetService';
 
 interface SettingsPanelProps {
   open: boolean;
@@ -11,6 +12,26 @@ interface SettingsPanelProps {
 
 export default function SettingsPanel({ open, onClose }: SettingsPanelProps) {
   const [section, setSection] = useState<'accounts' | 'assets' | 'preferences'>('accounts');
+  const [userAssets, setUserAssets] = useState<AssetWithPrice[]>([]);
+  const [removing, setRemoving] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (open && section === 'assets') loadAssets();
+  }, [open, section]);
+
+  const loadAssets = async () => {
+    try { setUserAssets(await getAssetsWithPrices()); } catch { /* */ }
+  };
+
+  const handleRemoveAsset = async (assetId: number, name: string) => {
+    if (!confirm(`¿Eliminar "${name}" y todas sus operaciones/transacciones? Esta acción no se puede deshacer.`)) return;
+    setRemoving(assetId);
+    try {
+      await removeAsset(assetId);
+      setUserAssets(prev => prev.filter(a => a.asset_id !== assetId));
+    } catch { /* */ }
+    finally { setRemoving(null); }
+  };
 
   if (!open) return null;
 
@@ -69,12 +90,43 @@ export default function SettingsPanel({ open, onClose }: SettingsPanelProps) {
           )}
 
           {section === 'assets' && (
-            <div>
+            <div className="space-y-6">
               <div className="mb-4">
                 <h3 className={text.sectionTitle}>Activos</h3>
-                <p className={text.sectionDesc}>Añade activos con su ticker de Yahoo Finance. El worker traerá precios automáticamente.</p>
+                <p className={text.sectionDesc}>
+                  Añade activos con su ticker <strong>exacto de Yahoo Finance</strong>, incluyendo la extensión de la bolsa donde cotiza.
+                  Ejemplos: <code className="text-xs bg-[#F0EBE3] px-1 py-0.5 rounded">NXT.MC</code> (Madrid),
+                  <code className="text-xs bg-[#F0EBE3] px-1 py-0.5 rounded">VUSA.L</code> (Londres),
+                  <code className="text-xs bg-[#F0EBE3] px-1 py-0.5 rounded">MSFT</code> (NASDAQ, sin extensión).
+                  El worker usa el ticker tal cual para traer precios automáticamente.
+                </p>
               </div>
-              <AssetCreationForm />
+              <AssetCreationForm onSuccess={() => loadAssets()} />
+
+              {/* User's assets list with delete */}
+              {userAssets.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-[#5A5549] mb-2">Tus activos</h4>
+                  <div className="space-y-1">
+                    {userAssets.map(a => (
+                      <div key={a.asset_id} className="flex items-center justify-between px-3 py-2 rounded-lg border border-[#E5DED3] bg-[#FAFAF8]">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-[#2C2C2C]">{a.name}</span>
+                          <span className="text-xs text-[#8B8578] font-mono">{a.ticker || a.isin || '—'}</span>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveAsset(a.asset_id, a.name)}
+                          disabled={removing === a.asset_id}
+                          className="p-1.5 rounded text-[#8B8578] hover:text-[#C25B3F] hover:bg-[#C25B3F]/10 transition cursor-pointer disabled:opacity-40"
+                          title="Eliminar activo y todas sus operaciones"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

@@ -178,9 +178,9 @@ export async function apiPut<T>(
     }, requireAuth);
 }
 
-// export async function apiDelete<T>(
-//     endpoint: string, 
-//     requireAuth: boolean = false
-// ): Promise<T> {
-//     return apiRequest<T>(endpoint, { method: 'DELETE' }, requireAuth);
-// }
+export async function apiDelete<T>(
+    endpoint: string, 
+    requireAuth: boolean = false
+): Promise<T> {
+    return apiRequest<T>(endpoint, { method: 'DELETE' }, requireAuth);
+}

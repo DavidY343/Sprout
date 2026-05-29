@@ -1,5 +1,5 @@
 import { AssetAllocation, AssetTableRow, Asset, AssetCreate } from '../types/asset'
-import { apiGet, apiPost } from './api'
+import { apiGet, apiPost, apiDelete } from './api'
 
 
 
@@ -72,4 +72,8 @@ export async function getAssetsWithPrices(): Promise<AssetWithPrice[]> {
         console.error('Error fetching assets with prices:', error);
         throw error;
     }
+}
+
+export async function removeAsset(assetId: number): Promise<void> {
+    await apiDelete<void>(`/assets/${assetId}`, true);
 }

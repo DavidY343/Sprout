@@ -44,22 +44,19 @@ def connect_db():
         )
 
 
-def try_get_data(identifier):
-    """Intenta obtener precio de cierre de Yahoo Finance con varios sufijos."""
-    suffixes = ["", ".MC", ".F", ".MI", ".L", ".AS", ".PA", ".DE"]
+def try_get_data(ticker):
+    """Obtiene precio de cierre de Yahoo Finance usando el ticker tal cual.
+    El ticker ya debe incluir el sufijo de bolsa si es necesario (ej: NXT.MC, VUSA.L)."""
+    try:
+        asset = yf.Ticker(ticker)
+        data = asset.history(period="5d")
 
-    for suffix in suffixes:
-        ticker_to_try = f"{identifier}{suffix}"
-        try:
-            asset = yf.Ticker(ticker_to_try)
-            data = asset.history(period="5d")
-
-            if not data.empty:
-                last_price = float(data['Close'].iloc[-1])
-                price_date = data.index[-1].to_pydatetime()
-                return last_price, price_date, ticker_to_try
-        except Exception:
-            continue
+        if not data.empty:
+            last_price = float(data['Close'].iloc[-1])
+            price_date = data.index[-1].to_pydatetime()
+            return last_price, price_date, ticker
+    except Exception:
+        pass
     return None, None, None
 
 
@@ -83,8 +80,7 @@ def fetch_closing_prices():
         cur.execute("""
             SELECT asset_id, ticker, isin, type FROM assets
             WHERE is_active = TRUE
-              AND ticker NOT LIKE 'TST\\_%' ESCAPE '\\'
-              AND ticker NOT LIKE '%%\\_E2E' ESCAPE '\\'
+              AND ticker NOT LIKE '%%\\_%%' ESCAPE '\\'
         """)
         assets = cur.fetchall()
         problem_assets = []
@@ -130,7 +126,7 @@ def fetch_closing_prices():
         if conn:
             conn.close()
 
-    print(f"\nResumen: {updated} actualizados, {errors} errores")
+    print(f"\nResumen: {updated} actualizados, {errors} no encontrados")
     return errors
 
 
@@ -194,4 +190,6 @@ if __name__ == "__main__":
     consolidate_history()
 
     print("\n✅ Worker finalizado.")
-    sys.exit(1 if errors > 0 else 0)
+    # Exit 0 always — unfound tickers are warnings, not failures.
+    # Only connection/DB errors should cause a non-zero exit.
+    sys.exit(0)
