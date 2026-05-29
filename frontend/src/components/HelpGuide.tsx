@@ -40,7 +40,7 @@ const guides: Record<string, { title: string; items: string[] }> = {
       'Puedes editar el precio de compra manualmente (no tiene por qué ser el precio actual).',
       'El total se calcula automáticamente: cantidad × precio.',
       'Para editar una operación existente, pulsa sobre la fila en la tabla.',
-      'Cada operación genera automáticamente un movimiento de efectivo en la cuenta correspondiente.',,
+      'Cada operación genera automáticamente un movimiento de efectivo en la cuenta correspondiente.',
     ],
   },
   transactions: {
