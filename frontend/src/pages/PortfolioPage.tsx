@@ -110,19 +110,19 @@ export default function PortfolioPage({ view, setView }: PortfolioPageProps) {
               <div className={layout.gridKpi4}>
                 <KPICard title="1 Mes"
                   value={`${monthlyPerformance > 0 ? '+' : ''}${monthlyPerformance.toFixed(2)}%`}
-                  subtitle={`€ ${(monthlyPerformance * totalInvested / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  subtitle={`€ ${(metrics?.month?.abs ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                   positive={monthlyPerformance > 0} />
                 <KPICard title="3 Meses"
                   value={`${threeMonthsPerformance > 0 ? '+' : ''}${threeMonthsPerformance.toFixed(2)}%`}
-                  subtitle={`€ ${(threeMonthsPerformance * totalInvested / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  subtitle={`€ ${(metrics?.three_months?.abs ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                   positive={threeMonthsPerformance > 0} />
                 <KPICard title="YTD"
                   value={`${ytdPerformance > 0 ? '+' : ''}${ytdPerformance.toFixed(2)}%`}
-                  subtitle={`€ ${(ytdPerformance * totalInvested / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  subtitle={`€ ${(metrics?.ytd?.abs ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                   positive={ytdPerformance > 0} />
                 <KPICard title="Total"
                   value={`${totalPerformance > 0 ? '+' : ''}${totalPerformance.toFixed(2)}%`}
-                  subtitle={`€ ${(totalPerformance * totalInvested / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  subtitle={`€ ${(metrics?.total?.abs ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                   positive={totalPerformance > 0} />
               </div>
             </div>

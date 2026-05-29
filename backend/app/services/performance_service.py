@@ -77,30 +77,20 @@ async def get_performance_metrics(db: AsyncSession, user_id: int):
             (COALESCE(dpv.total_assets_value, 0) + COALESCE(ce.efectivo_total, 0)) as total_value
         FROM cash_evolution ce
         LEFT JOIN daily_portfolio_value dpv ON ce.day = dpv.day
-    ),
-    first_record AS (
-        -- Buscamos el primer día que hubo actividad real
-        SELECT total_value as val_start 
-        FROM portfolio_history 
-        ORDER BY day ASC LIMIT 1
     )
     SELECT 
         (SELECT total_value FROM portfolio_history ORDER BY day DESC LIMIT 1) as current_val,
         (SELECT capital_invertido FROM portfolio_history ORDER BY day DESC LIMIT 1) as current_cap,
-        -- Si no hay datos hace X tiempo, COALESCE usa el valor del primer día registrado
-        COALESCE(
-            (SELECT total_value FROM portfolio_history WHERE day <= NOW() - interval '1 month' ORDER BY day DESC LIMIT 1),
-            (SELECT val_start FROM first_record)
-        ) as val_1m,
-        COALESCE(
-            (SELECT total_value FROM portfolio_history WHERE day <= NOW() - interval '3 month' ORDER BY day DESC LIMIT 1),
-            (SELECT val_start FROM first_record)
-        ) as val_3m,
-        COALESCE(
-            (SELECT total_value FROM portfolio_history WHERE day <= DATE_TRUNC('year', NOW()) ORDER BY day DESC LIMIT 1),
-            (SELECT val_start FROM first_record)
-        ) as val_ytd
-    FROM portfolio_history, first_record
+
+        COALESCE((SELECT total_value FROM portfolio_history WHERE day <= NOW() - interval '1 month' ORDER BY day DESC LIMIT 1), 0) as val_1m,
+        COALESCE((SELECT capital_invertido FROM portfolio_history WHERE day <= NOW() - interval '1 month' ORDER BY day DESC LIMIT 1), 0) as cap_1m,
+
+        COALESCE((SELECT total_value FROM portfolio_history WHERE day <= NOW() - interval '3 month' ORDER BY day DESC LIMIT 1), 0) as val_3m,
+        COALESCE((SELECT capital_invertido FROM portfolio_history WHERE day <= NOW() - interval '3 month' ORDER BY day DESC LIMIT 1), 0) as cap_3m,
+
+        COALESCE((SELECT total_value FROM portfolio_history WHERE day <= DATE_TRUNC('year', NOW()) ORDER BY day DESC LIMIT 1), 0) as val_ytd,
+        COALESCE((SELECT capital_invertido FROM portfolio_history WHERE day <= DATE_TRUNC('year', NOW()) ORDER BY day DESC LIMIT 1), 0) as cap_ytd
+    FROM portfolio_history
     LIMIT 1;
     """)
 
@@ -115,19 +105,23 @@ async def get_performance_metrics(db: AsyncSession, user_id: int):
             "total": {"pct": 0.0, "abs": 0.0}
         }
 
-    def calc_metrics(current, past):
-        if past is None or past == 0: 
+    def calc_period(current_val, current_cap, past_val, past_cap):
+        """Calculate period return adjusted for cash flows (deposits/withdrawals)."""
+        deposits_in_period = float(current_cap) - float(past_cap)
+        gain = float(current_val) - float(past_val) - deposits_in_period
+
+        # Denominator: start-of-period portfolio value, or total deposits if no prior history
+        denom = float(past_val) if float(past_val) > 0 else float(current_cap)
+        if denom <= 0:
             return {"pct": 0.0, "abs": 0.0}
-        abs_val = float(current - past)
-        pct = (abs_val / float(past)) * 100
-        return {"pct": round(pct, 2), "abs": round(abs_val, 2)}
+        return {"pct": round((gain / denom) * 100, 2), "abs": round(gain, 2)}
+
+    cv = row.current_val
+    cc = row.current_cap
 
     return {
-        "month": calc_metrics(row.current_val, row.val_1m),
-        "three_months": calc_metrics(row.current_val, row.val_3m),
-        "ytd": calc_metrics(row.current_val, row.val_ytd),
-        "total": {
-            "pct": round(((row.current_val - row.current_cap) / row.current_cap * 100), 2) if row.current_cap > 0 else 0.0,
-            "abs": round(float(row.current_val - row.current_cap), 2)
-        }
+        "month": calc_period(cv, cc, row.val_1m, row.cap_1m),
+        "three_months": calc_period(cv, cc, row.val_3m, row.cap_3m),
+        "ytd": calc_period(cv, cc, row.val_ytd, row.cap_ytd),
+        "total": calc_period(cv, cc, 0, 0),
     }
