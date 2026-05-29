@@ -39,7 +39,7 @@ $headers = @{ Authorization = "Bearer $token" }
 # Create account
 try {
     $acct = Invoke-RestMethod "$API/accounts/create" -Method POST -Headers $headers -ContentType "application/json" `
-        -Body (@{name="Test Account"; type="Inversión"; currency="EUR"} | ConvertTo-Json)
+        -Body (@{name="Test Account"; type="broker"; currency="EUR"} | ConvertTo-Json)
     Write-Host "[PASS] 2. Account created (id=$($acct.account_id))" -ForegroundColor Green; $pass++
 } catch { Write-Host "[FAIL] 2. Account: $_" -ForegroundColor Red; $fail++; exit 1 }
 
@@ -53,7 +53,7 @@ try {
 # Create asset
 try {
     $asset = Invoke-RestMethod "$API/assets/create" -Method POST -Headers $headers -ContentType "application/json" `
-        -Body (@{ticker="AAPL"; name="Apple Inc"; isin="US0378331005"; currency="EUR"; asset_type="stock"} | ConvertTo-Json)
+        -Body (@{ticker="AAPL"; name="Apple Inc"; isin="US0378331005"; currency="EUR"; type="stock"} | ConvertTo-Json)
     Write-Host "[PASS] 4. Asset created (id=$($asset.asset_id))" -ForegroundColor Green; $pass++
 } catch { Write-Host "[FAIL] 4. Asset: $_" -ForegroundColor Red; $fail++; exit 1 }
 
@@ -102,7 +102,7 @@ try {
     
     # Asset table profit = (current_price - buy_price) * qty
     # Since we just created the asset with price=100 and no worker has run, current_price should be 100
-    $currentPrice = $assetRow.latest_price
+    $currentPrice = $assetRow.current_price
     $qty = 4  # after the successful edit
     $assetProfit = ($currentPrice - 100) * $qty
     
@@ -123,7 +123,7 @@ try {
 
 # --- Test 9: Verify transaction description was updated ---
 try {
-    $txns = Invoke-RestMethod "$API/transactions" -Method GET -Headers $headers
+    $txns = Invoke-RestMethod "$API/transactions/me" -Method GET -Headers $headers
     $investTx = $txns | Where-Object { $_.category -eq "Inversión" } | Select-Object -First 1
     if ($investTx.description -match "BUY 4") {
         Write-Host "[PASS] 9. Transaction description updated to 'BUY 4...'" -ForegroundColor Green; $pass++

@@ -138,9 +138,9 @@ async def update_operation(db: AsyncSession, operation_id: int, update_data: Ope
             {"account_id": operation.account_id}
         )
         current_cash = float(cash_result.scalar())
-        projected_cash = current_cash + cash_delta
+        projected_cash = current_cash + float(cash_delta)
         if projected_cash < 0:
-            raise ValueError(f"Fondos insuficientes. Efectivo disponible: {current_cash:.2f}€, necesario adicional: {abs(cash_delta):.2f}€")
+            raise ValueError(f"Fondos insuficientes. Efectivo disponible: {current_cash:.2f}€, necesario adicional: {abs(float(cash_delta)):.2f}€")
 
     # Find and update the associated cash transaction
     # Match by account, category, date, and original amount
