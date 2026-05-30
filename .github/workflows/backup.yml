@@ -1,0 +1,39 @@
+name: Daily DB Backup
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Every day at 03:00 UTC
+  workflow_dispatch: {}   # Manual trigger
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install PostgreSQL client
+        run: sudo apt-get install -y postgresql-client
+
+      - name: Run pg_dump
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          pg_dump "$DATABASE_URL" \
+            --no-owner --no-acl --clean --if-exists \
+            | gzip > backup.sql.gz
+          echo "Backup size: $(du -h backup.sql.gz | cut -f1)"
+
+      - name: Push to backup repo
+        env:
+          BACKUP_TOKEN: ${{ secrets.BACKUP_REPO_TOKEN }}
+          BACKUP_REPO: ${{ secrets.BACKUP_REPO }}
+        run: |
+          git clone "https://x-access-token:${BACKUP_TOKEN}@github.com/${BACKUP_REPO}.git" backup-repo
+          cd backup-repo
+
+          DAY=$(date -u +%A | tr '[:upper:]' '[:lower:]')
+          cp ../backup.sql.gz "sprout-${DAY}.sql.gz"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "backup: $(date -u '+%Y-%m-%d %H:%M UTC')" || echo "No changes"
+          git push
