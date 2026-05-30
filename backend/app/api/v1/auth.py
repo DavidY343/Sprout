@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-import logging
+import httpx as httpx_client
 
 from app.core.dependencies import get_db, verify_csrf
 from app.core.security import hash_password, verify_password
@@ -17,15 +17,6 @@ from app.core.config import (
 )
 from app.models.user import User
 from app.schemas.user import UserCreate
-
-# Google auth - optional import
-try:
-    from google.oauth2 import id_token as google_id_token
-    from google.auth.transport import requests as google_auth_requests
-    _google_available = True
-except ImportError:
-    _google_available = False
-    logging.warning("google-auth not installed; Google login disabled")
 
 router = APIRouter()
 
@@ -236,18 +227,20 @@ async def get_me(request: Request, db: AsyncSession = Depends(get_db)):
 @router.post("/google")
 async def google_login(response: Response, credential: str = Body(..., embed=True), db: AsyncSession = Depends(get_db)):
     """Authenticate with Google ID token. Creates user if first time."""
-    if not _google_available:
-        raise HTTPException(status_code=501, detail="Google auth library not installed")
-
     if not GOOGLE_CLIENT_ID:
         raise HTTPException(status_code=501, detail="Google login not configured")
 
-    try:
-        idinfo = google_id_token.verify_oauth2_token(
-            credential, google_auth_requests.Request(), GOOGLE_CLIENT_ID
+    # Verify the token via Google's tokeninfo endpoint (no google-auth dependency)
+    async with httpx_client.AsyncClient() as client:
+        resp = await client.get(
+            f"https://oauth2.googleapis.com/tokeninfo?id_token={credential}"
         )
-    except ValueError:
+    if resp.status_code != 200:
         raise HTTPException(status_code=401, detail="Invalid Google token")
+
+    idinfo = resp.json()
+    if idinfo.get("aud") != GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=401, detail="Invalid token audience")
 
     google_id = idinfo["sub"]
     email = idinfo.get("email")
