@@ -76,6 +76,7 @@ export default function GoogleSignInButton({ onSuccess, onError }: Props) {
 
       const data = await res.json()
       localStorage.setItem('user_email', data.email)
+      if (data.csrf_token) localStorage.setItem('csrf_token', data.csrf_token)
       onSuccess()
     } catch (e: any) {
       onError(e.message || 'Error de conexión')

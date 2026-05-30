@@ -2,11 +2,11 @@ import { LoginCredentials, RegisterData, AuthResponse } from '../types/auth';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 const USER_EMAIL_KEY = 'user_email';
+const CSRF_KEY = 'csrf_token';
 
-/** Read the csrf_token cookie value (not HttpOnly, readable by JS). */
+/** Read the csrf_token from localStorage (set on login/register/refresh). */
 export function getCsrfToken(): string {
-    const match = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);
-    return match ? decodeURIComponent(match[1]) : '';
+    return localStorage.getItem(CSRF_KEY) || '';
 }
 
 export function getUserEmail(): string | null {
@@ -31,6 +31,8 @@ export async function checkAuth(): Promise<boolean> {
             credentials: 'include',
         });
         if (refreshRes.ok) {
+            const refreshData = await refreshRes.json();
+            if (refreshData.csrf_token) localStorage.setItem(CSRF_KEY, refreshData.csrf_token);
             const retryRes = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' });
             if (retryRes.ok) {
                 const data = await retryRes.json();
@@ -45,7 +47,6 @@ export async function checkAuth(): Promise<boolean> {
 }
 
 export function isAuthenticated(): boolean {
-    // Quick check: do we have a csrf_token cookie? (proxy for being logged in)
     return getCsrfToken() !== '';
 }
 
@@ -62,6 +63,7 @@ export async function register(data: RegisterData): Promise<AuthResponse> {
     }
     const response = await res.json();
     localStorage.setItem(USER_EMAIL_KEY, response.email);
+    if (response.csrf_token) localStorage.setItem(CSRF_KEY, response.csrf_token);
     return response;
 }
 
@@ -78,6 +80,7 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
     }
     const response = await res.json();
     localStorage.setItem(USER_EMAIL_KEY, response.email);
+    if (response.csrf_token) localStorage.setItem(CSRF_KEY, response.csrf_token);
     return response;
 }
 
@@ -87,6 +90,7 @@ export async function logout(): Promise<void> {
         credentials: 'include',
     }).catch(() => {});
     localStorage.removeItem(USER_EMAIL_KEY);
+    localStorage.removeItem(CSRF_KEY);
     window.location.reload();
 }
 
@@ -98,6 +102,8 @@ export async function refreshAccessToken(): Promise<void> {
     if (!res.ok) {
         throw new Error('Refresh failed');
     }
+    const data = await res.json();
+    if (data.csrf_token) localStorage.setItem(CSRF_KEY, data.csrf_token);
 }
 
 export async function forgotPassword(email: string): Promise<void> {

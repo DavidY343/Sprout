@@ -92,7 +92,7 @@ async def register(user_data: UserCreate, response: Response, db: AsyncSession =
         token = create_email_token({"sub": str(new_user.user_id), "purpose": "verify"})
         await send_verification_email(new_user.email, token)
 
-    return {"message": "ok", "email": new_user.email}
+    return {"message": "ok", "email": new_user.email, "csrf_token": csrf}
 
 
 @router.post("/login")
@@ -109,7 +109,7 @@ async def login(response: Response, db: AsyncSession = Depends(get_db), email: s
     
     _set_auth_cookies(response, access, refresh, csrf, remember_me)
 
-    return {"message": "ok", "email": user.email, "email_verified": user.email_verified}
+    return {"message": "ok", "email": user.email, "email_verified": user.email_verified, "csrf_token": csrf}
 
 
 @router.post("/refresh")
@@ -148,7 +148,7 @@ async def refresh_token_endpoint(request: Request, response: Response):
         path="/",
     )
 
-    return {"message": "ok"}
+    return {"message": "ok", "csrf_token": csrf}
 
 
 @router.post("/logout")
@@ -279,4 +279,4 @@ async def google_login(response: Response, credential: str = Body(..., embed=Tru
 
     _set_auth_cookies(response, access, refresh, csrf, remember_me=True)
 
-    return {"message": "ok", "email": user.email, "email_verified": user.email_verified}
+    return {"message": "ok", "email": user.email, "email_verified": user.email_verified, "csrf_token": csrf}
