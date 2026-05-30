@@ -38,7 +38,7 @@ export default function GoogleSignInButton({ onSuccess, onError }: Props) {
       window.google.accounts.id.renderButton(buttonRef.current, {
         theme: 'outline',
         size: 'large',
-        width: '100%',
+        width: 360,
         text: 'signin_with',
         locale: 'es',
       })
