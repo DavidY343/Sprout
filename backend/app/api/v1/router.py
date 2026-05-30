@@ -6,6 +6,7 @@ from app.api.v1.assets import router as assets_router
 from app.api.v1.accounts import router as accounts_router
 from app.api.v1.history_chart import router as history_chart
 from app.api.v1.transactions import router as transactions_router
+from app.api.v1.friends import router as friends_router
 
 api_router = APIRouter()
 api_router.include_router(
@@ -48,4 +49,10 @@ api_router.include_router(
     transactions_router,
     prefix="/transactions",
     tags=["transactions"]
+)
+
+api_router.include_router(
+    friends_router,
+    prefix="/friends",
+    tags=["friends"]
 )

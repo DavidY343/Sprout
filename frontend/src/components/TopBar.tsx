@@ -18,7 +18,8 @@ export default function TopBar({ activeTab, setActiveTab }: Props) {
   const tabs = [
     { id: 'portfolio', label: 'Dashboard' },
     { id: 'trades', label: 'Operaciones' },
-    { id: 'transactions', label: 'Balances' }
+    { id: 'transactions', label: 'Balances' },
+    { id: 'friends', label: 'Amigos' },
   ];
 
   useEffect(() => {

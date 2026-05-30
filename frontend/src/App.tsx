@@ -5,6 +5,7 @@ import PortfolioPage from './pages/PortfolioPage'
 import TradesPage from './pages/TradesPage'
 import LoginPage from './pages/LoginPage'
 import TransactionPage from './pages/TransactionPage'
+import FriendsPage from './pages/FriendsPage'
 import { isAuthenticated, checkAuth } from './services/authService'
 import { app } from './styles/theme'
 
@@ -47,6 +48,7 @@ export default function App() {
         {activeTab === 'portfolio' && <PortfolioPage key={portfolioKey} view={portfolioView} setView={setPortfolioView} />}
         {activeTab === 'trades' && <TradesPage />}
         {activeTab === 'transactions' && <TransactionPage />}
+        {activeTab === 'friends' && <FriendsPage />}
       </main>
       <HelpGuide activeTab={activeTab} portfolioView={portfolioView} />
     </div>

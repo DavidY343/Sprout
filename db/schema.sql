@@ -115,3 +115,25 @@ CREATE INDEX idx_price_asset_date ON price_history(asset_id, date DESC);
 
 CREATE INDEX idx_user_assets_user ON user_assets(user_id);
 CREATE INDEX idx_user_assets_asset ON user_assets(asset_id);
+
+CREATE TABLE friendships (
+    friendship_id BIGSERIAL PRIMARY KEY,
+    requester_id  BIGINT NOT NULL,
+    addressee_id  BIGINT NOT NULL,
+    status        VARCHAR(10) NOT NULL DEFAULT 'pending',
+    created_at    TIMESTAMPTZ DEFAULT NOW(),
+
+    CONSTRAINT fk_friendship_requester
+        FOREIGN KEY (requester_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_friendship_addressee
+        FOREIGN KEY (addressee_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    CONSTRAINT chk_friendship_status
+        CHECK (status IN ('pending', 'accepted')),
+    CONSTRAINT chk_no_self_friend
+        CHECK (requester_id != addressee_id),
+    CONSTRAINT uq_friendship_pair
+        UNIQUE (requester_id, addressee_id)
+);
+
+CREATE INDEX idx_friendships_requester ON friendships(requester_id);
+CREATE INDEX idx_friendships_addressee ON friendships(addressee_id);
