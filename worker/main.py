@@ -47,12 +47,15 @@ def connect_db():
 def try_get_data(ticker):
     """Obtiene precio de cierre de Yahoo Finance usando el ticker tal cual.
     El ticker ya debe incluir el sufijo de bolsa si es necesario (ej: NXT.MC, VUSA.L)."""
+    import math
     try:
         asset = yf.Ticker(ticker)
         data = asset.history(period="5d")
 
         if not data.empty:
             last_price = float(data['Close'].iloc[-1])
+            if math.isnan(last_price) or math.isinf(last_price) or last_price <= 0:
+                return None, None, None
             price_date = data.index[-1].to_pydatetime()
             return last_price, price_date, ticker
     except Exception:
@@ -81,6 +84,7 @@ def fetch_closing_prices():
             SELECT asset_id, ticker, isin, type FROM assets
             WHERE is_active = TRUE
               AND ticker NOT LIKE '%%\\_%%' ESCAPE '\\'
+              AND ticker NOT LIKE 'TST%%'
         """)
         assets = cur.fetchall()
         problem_assets = []
