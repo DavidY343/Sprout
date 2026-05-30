@@ -1,116 +1,72 @@
-import { getAccessToken, refreshAccessToken, isAuthenticated, logout } from './authService';
+import { getCsrfToken, refreshAccessToken, logout } from './authService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 // Variable para evitar múltiples refrescos simultáneos
 let isRefreshing = false;
-let refreshSubscribers: Array<(token: string) => void> = [];
+let refreshPromise: Promise<void> | null = null;
 
-function subscribeTokenRefresh(callback: (token: string) => void) {
-    refreshSubscribers.push(callback);
-}
-
-function onRefreshed(token: string) {
-    refreshSubscribers.forEach(callback => callback(token));
-    refreshSubscribers = [];
-}
-
-async function attemptRefresh(): Promise<string | null> {
-    if (isRefreshing) {
-        return new Promise((resolve) => {
-            subscribeTokenRefresh(resolve);
-        });
+async function attemptRefresh(): Promise<void> {
+    if (isRefreshing && refreshPromise) {
+        return refreshPromise;
     }
-
     isRefreshing = true;
-    
-    try {
-        const newToken = await refreshAccessToken();
+    refreshPromise = refreshAccessToken().finally(() => {
         isRefreshing = false;
-        onRefreshed(newToken);
-        return newToken;
-    } catch (error) {
-        isRefreshing = false;
-        refreshSubscribers = [];
-        throw error;
-    }
-}
-
-
-async function getHeaders(requireAuth: boolean): Promise<Record<string, string>> {
-    const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-    };
-
-    if (requireAuth) {
-        let token = getAccessToken();
-    
-        if (!token) {
-            throw new Error('No autenticado. Por favor inicia sesión.');
-        }
-        if (!isAuthenticated()) {
-            try {
-                token = await attemptRefresh();
-            } catch (refreshError) {
-                logout();
-                throw new Error('Sesión expirada. Por favor inicia sesión nuevamente.');
-            }
-        }
-
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    return headers;
+        refreshPromise = null;
+    });
+    return refreshPromise;
 }
 
 /**
- * Función base para peticiones HTTP
+ * Core fetch wrapper. All requests include credentials (cookies).
+ * State-changing methods include X-CSRF-Token header.
  */
 async function apiRequest<T>(
     endpoint: string,
     options: RequestInit = {},
     requireAuth: boolean = false
 ): Promise<T> {
-    const headers = await getHeaders(requireAuth);
-    
-    const config: RequestInit = {
-        ...options,
-        headers: {
-            ...headers,
-            ...options.headers,
-        },
+    const method = (options.method || 'GET').toUpperCase();
+    const headers: Record<string, string> = {
+        ...(options.headers as Record<string, string> || {}),
     };
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    // Add CSRF header for state-changing methods
+    if (method !== 'GET' && method !== 'HEAD') {
+        headers['X-CSRF-Token'] = getCsrfToken();
+    }
 
-    // Manejar errores específicos
-    if (!response.ok) {
-        // Si es 401 y teníamos token, puede que haya expirado justo ahora
-        if (response.status === 401 && requireAuth && isAuthenticated()) {
-            try {
-                // Intentar refresh y reintentar
-                const newToken = await attemptRefresh();
-                
-                // Actualizar headers con nuevo token
-                config.headers = {
-                    ...config.headers,
-                    'Authorization': `Bearer ${newToken}`,
-                };
-                
-                // Reintentar la petición
-                const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, config);
-                
-                if (retryResponse.ok) {
-                    return retryResponse.json();
-                }
-            } catch (refreshError) {
-                logout();
+    // Default content-type if not set and body is not FormData
+    if (!headers['Content-Type'] && options.body && !(options.body instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
+    }
+
+    const config: RequestInit = {
+        ...options,
+        headers,
+        credentials: 'include',
+    };
+
+    let response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+
+    // If 401 and auth required, try refresh once
+    if (response.status === 401 && requireAuth) {
+        try {
+            await attemptRefresh();
+            // Update CSRF after refresh
+            if (method !== 'GET' && method !== 'HEAD') {
+                headers['X-CSRF-Token'] = getCsrfToken();
             }
+            response = await fetch(`${API_BASE_URL}${endpoint}`, { ...config, headers });
+        } catch {
+            logout();
+            throw new Error('Sesión expirada. Por favor inicia sesión nuevamente.');
         }
+    }
 
-        // Manejo de otros errores
+    if (!response.ok) {
         let errorMessage = `API error: ${response.status}`;
-        
         try {
             const errorData = await response.json();
             if (errorData.detail && Array.isArray(errorData.detail)) {
@@ -121,11 +77,10 @@ async function apiRequest<T>(
         } catch {
             try {
                 errorMessage = await response.text() || errorMessage;
-            } catch (textError) {
+            } catch {
                 // ignore
             }
         }
-        
         throw new Error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
     }
 
@@ -134,7 +89,7 @@ async function apiRequest<T>(
 
 
 export async function apiGet<T>(
-    endpoint: string, 
+    endpoint: string,
     requireAuth: boolean = false
 ): Promise<T> {
     return apiRequest<T>(endpoint, { method: 'GET' }, requireAuth);
@@ -142,34 +97,27 @@ export async function apiGet<T>(
 
 
 export async function apiPost<T>(
-  endpoint: string, 
-  data: any, 
-  requireAuth: boolean = false
+    endpoint: string,
+    data: any,
+    requireAuth: boolean = false
 ): Promise<T> {
-  const config: RequestInit = {
-    method: 'POST',
-  };
-
-  if (data instanceof URLSearchParams) {
-    config.body = data.toString();
-    config.headers = {
-      'Content-Type': 'application/x-www-form-urlencoded',
+    const config: RequestInit = {
+        method: 'POST',
     };
-  } else if (data instanceof FormData) {
-    config.body = data;
-  } else {
-    config.body = JSON.stringify(data);
-    config.headers = {
-      'Content-Type': 'application/json',
-    };
-  }
 
-  return apiRequest<T>(endpoint, config, requireAuth);
+    if (data instanceof FormData) {
+        config.body = data;
+    } else {
+        config.body = JSON.stringify(data);
+        config.headers = { 'Content-Type': 'application/json' };
+    }
+
+    return apiRequest<T>(endpoint, config, requireAuth);
 }
 
 export async function apiPut<T>(
-    endpoint: string, 
-    data: any, 
+    endpoint: string,
+    data: any,
     requireAuth: boolean = false
 ): Promise<T> {
     return apiRequest<T>(endpoint, {
@@ -179,7 +127,7 @@ export async function apiPut<T>(
 }
 
 export async function apiDelete<T>(
-    endpoint: string, 
+    endpoint: string,
     requireAuth: boolean = false
 ): Promise<T> {
     return apiRequest<T>(endpoint, { method: 'DELETE' }, requireAuth);

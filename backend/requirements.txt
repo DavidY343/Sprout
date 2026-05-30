@@ -9,3 +9,11 @@ passlib[bcrypt]
 bcrypt==4.0.1
 
 python-dotenv
+
+# Email
+aiosmtplib
+jinja2
+
+# Google OAuth
+google-auth
+httpx

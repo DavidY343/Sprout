@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { UserCircle, LogOut, Settings, Sun, Moon } from 'lucide-react';
-import { isAuthenticated, logout, getUserEmail } from '../services/authService';
+import { logout, getUserEmail } from '../services/authService';
 import { app, button } from '../styles/theme';
 import { useTheme } from '../hooks/useTheme';
 import SettingsPanel from './SettingsPanel';
@@ -27,7 +27,6 @@ export default function TopBar({ activeTab, setActiveTab }: Props) {
 
   const handleLogout = () => {
     logout();
-    window.location.reload();
   };
 
   return (

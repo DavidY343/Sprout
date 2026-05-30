@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { TrendingUp, Shield, PieChart } from 'lucide-react';
-import { login, register } from '../services/authService';
+import { login, register, forgotPassword } from '../services/authService';
 import { LoginCredentials } from '../types/auth';
 import { surface, text, input, button } from '../styles/theme';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 export default function LoginPage() {
   const [credentials, setCredentials] = useState<LoginCredentials>({
     email: '',
-    password: ''
+    password: '',
+    remember_me: false,
   });
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -183,6 +185,20 @@ const handleRegister = async (e: React.FormEvent) => {
                   </button>
                 </form>
 
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-[var(--border)]"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="px-3 bg-[var(--bg-surface)] text-[var(--text-muted)]">o continúa con</span>
+                  </div>
+                </div>
+
+                <GoogleSignInButton
+                  onSuccess={() => window.location.reload()}
+                  onError={(msg) => setError(msg)}
+                />
+
                 <div className="mt-6 pt-6 border-t border-[var(--border)]">
                   <p className="text-sm text-[var(--text-muted)] text-center">
                     ¿Ya tienes cuenta?{' '}
@@ -240,15 +256,24 @@ const handleRegister = async (e: React.FormEvent) => {
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
-                    <label className="flex items-center gap-2 text-[var(--text-secondary)]">
+                    <label className="flex items-center gap-2 text-[var(--text-secondary)] cursor-pointer">
                       <input
                         type="checkbox"
+                        checked={credentials.remember_me || false}
+                        onChange={(e) => setCredentials({ ...credentials, remember_me: e.target.checked })}
                         className="rounded bg-[var(--bg-surface-alt)] border-[var(--border-input)]"
                       />
                       Recordarme
                     </label>
                     <button
                       type="button"
+                      onClick={() => {
+                        const email = prompt('Introduce tu email para recuperar la contraseña:');
+                        if (email) {
+                          forgotPassword(email);
+                          alert('Si el email existe, recibirás un enlace de recuperación.');
+                        }
+                      }}
                       className="text-[var(--accent-blue)] hover:text-[#3A5F95]"
                     >
                       ¿Olvidaste tu contraseña?
@@ -263,6 +288,20 @@ const handleRegister = async (e: React.FormEvent) => {
                     {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
                   </button>
                 </form>
+
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-[var(--border)]"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="px-3 bg-[var(--bg-surface)] text-[var(--text-muted)]">o continúa con</span>
+                  </div>
+                </div>
+
+                <GoogleSignInButton
+                  onSuccess={() => window.location.reload()}
+                  onError={(msg) => setError(msg)}
+                />
 
                 <div className="mt-6 pt-6 border-t border-[var(--border)]">
                   <p className="text-sm text-[var(--text-muted)] text-center">

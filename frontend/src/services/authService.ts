@@ -1,113 +1,133 @@
-import { apiPost } from './api';
-import { LoginCredentials, RegisterData, AuthResponse, RefreshResponse } from '../types/auth';
+import { LoginCredentials, RegisterData, AuthResponse } from '../types/auth';
 
-const ACCESS_TOKEN_KEY = 'access_token';
-const REFRESH_TOKEN_KEY = 'refresh_token';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 const USER_EMAIL_KEY = 'user_email';
 
-
-function storeAuthData(accessToken: string, refreshToken: string, email?: string): void {
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-    if (email) {
-        localStorage.setItem(USER_EMAIL_KEY, email);
-    }
+/** Read the csrf_token cookie value (not HttpOnly, readable by JS). */
+export function getCsrfToken(): string {
+    const match = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : '';
 }
 
-export function clearAuthData(): void {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(USER_EMAIL_KEY);
+export function getUserEmail(): string | null {
+    return localStorage.getItem(USER_EMAIL_KEY);
 }
 
-export function getUserEmail(): string | null { return localStorage.getItem(USER_EMAIL_KEY); }
-
-export function getAccessToken(): string | null { return localStorage.getItem(ACCESS_TOKEN_KEY); }
-export function getRefreshToken(): string | null { return localStorage.getItem(REFRESH_TOKEN_KEY); }
-
-
-export function isAuthenticated(): boolean {
-    const token = getAccessToken();
-    if (!token) return false;
-
-    // Verificar si el token expira en menos de 60 segundos
+/**
+ * Check auth status by calling /auth/me.
+ * Returns true if the access_token cookie is valid.
+ */
+export async function checkAuth(): Promise<boolean> {
     try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const now = Math.floor(Date.now() / 1000);
-        const buffer = 60;
-        return payload.exp > (now + buffer);
+        const res = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' });
+        if (res.ok) {
+            const data = await res.json();
+            localStorage.setItem(USER_EMAIL_KEY, data.email);
+            return true;
+        }
+        // Try refreshing
+        const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include',
+        });
+        if (refreshRes.ok) {
+            const retryRes = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' });
+            if (retryRes.ok) {
+                const data = await retryRes.json();
+                localStorage.setItem(USER_EMAIL_KEY, data.email);
+                return true;
+            }
+        }
+        return false;
     } catch {
         return false;
     }
 }
 
+export function isAuthenticated(): boolean {
+    // Quick check: do we have a csrf_token cookie? (proxy for being logged in)
+    return getCsrfToken() !== '';
+}
+
 export async function register(data: RegisterData): Promise<AuthResponse> {
-    try {
-        const response = await apiPost<AuthResponse>('/auth/register', data);
-        
-        if (response.access_token && response.refresh_token) {
-            storeAuthData(response.access_token, response.refresh_token, data.email);
-        }
-        
-        return response;
-    } catch (error) {
-        clearAuthData();
-        throw error;
+    const res = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Registration failed');
     }
+    const response = await res.json();
+    localStorage.setItem(USER_EMAIL_KEY, response.email);
+    return response;
 }
 
 export async function login(credentials: LoginCredentials): Promise<AuthResponse> {
-    try {
-        const params = new URLSearchParams();
-        params.append('username', credentials.email);
-        params.append('password', credentials.password);
-
-        const response = await apiPost<AuthResponse>('/auth/login', params);
-        
-        if (response.access_token && response.refresh_token) {
-            storeAuthData(response.access_token, response.refresh_token, credentials.email);
-        }
-        
-        return response;
-    } catch (error) {
-        clearAuthData();
-        throw error;
+    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(credentials),
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Login failed');
     }
+    const response = await res.json();
+    localStorage.setItem(USER_EMAIL_KEY, response.email);
+    return response;
 }
 
-export function logout(): void {
-    clearAuthData();
+export async function logout(): Promise<void> {
+    await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+    }).catch(() => {});
+    localStorage.removeItem(USER_EMAIL_KEY);
     window.location.reload();
 }
 
-export async function refreshAccessToken(): Promise<string> {
-    const refreshToken = getRefreshToken();
-    
-    if (!refreshToken) {
-        throw new Error('No refresh token available');
-    }
-
-    try {
-        const response = await apiPost<RefreshResponse>('/auth/refresh', {
-            refresh_token: refreshToken
-        });
-        
-        if (response.access_token) {
-            localStorage.setItem(ACCESS_TOKEN_KEY, response.access_token);
-            return response.access_token;
-        }
-        
-        throw new Error('Invalid refresh response');
-    } catch (error: any) {
-        const isAuthError = error.response?.status === 401 || error.response?.status === 403;
-
-        if (isAuthError) {
-            logout();
-        } else { //e.g ERROR 500 NETWORK
-            console.error("Error de red o del servidor, manteniendo sesión activa por ahora.");
-        }
-
-        throw error;
+export async function refreshAccessToken(): Promise<void> {
+    const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+    });
+    if (!res.ok) {
+        throw new Error('Refresh failed');
     }
 }
 
+export async function forgotPassword(email: string): Promise<void> {
+    await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+    });
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+    const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, new_password: newPassword }),
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Reset failed');
+    }
+}
+
+export async function verifyEmail(token: string): Promise<void> {
+    const res = await fetch(`${API_BASE_URL}/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Verification failed');
+    }
+}

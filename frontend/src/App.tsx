@@ -5,7 +5,7 @@ import PortfolioPage from './pages/PortfolioPage'
 import TradesPage from './pages/TradesPage'
 import LoginPage from './pages/LoginPage'
 import TransactionPage from './pages/TransactionPage'
-import { isAuthenticated } from './services/authService'
+import { isAuthenticated, checkAuth } from './services/authService'
 import { app } from './styles/theme'
 
 export default function App() {
@@ -13,19 +13,23 @@ export default function App() {
   const [portfolioView, setPortfolioView] = useState('resumen')
   const [portfolioKey, setPortfolioKey] = useState(0)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false)
 
   useEffect(() => {
-
-    const auth = isAuthenticated()
-    setIsLoggedIn(auth)
-    
-    const handleStorageChange = () => {
-      setIsLoggedIn(isAuthenticated())
+    // Quick sync check for instant UI (avoids flash)
+    if (isAuthenticated()) {
+      setIsLoggedIn(true)
     }
-    
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
+    // Then verify with server
+    checkAuth().then(valid => {
+      setIsLoggedIn(valid)
+      setAuthChecked(true)
+    })
   }, [])
+
+  if (!authChecked && !isLoggedIn) {
+    return null // Brief loading state
+  }
 
   if (!isLoggedIn) {
     return <LoginPage />
