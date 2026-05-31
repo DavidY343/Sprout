@@ -6,6 +6,7 @@ import TradesPage from './pages/TradesPage'
 import LoginPage from './pages/LoginPage'
 import TransactionPage from './pages/TransactionPage'
 import FriendsPage from './pages/FriendsPage'
+import OnboardingGuide from './components/OnboardingGuide'
 import { isAuthenticated, checkAuth } from './services/authService'
 import { app } from './styles/theme'
 
@@ -15,6 +16,7 @@ export default function App() {
   const [portfolioKey, setPortfolioKey] = useState(0)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [authChecked, setAuthChecked] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   useEffect(() => {
     // Quick sync check for instant UI (avoids flash)
@@ -25,6 +27,9 @@ export default function App() {
     checkAuth().then(valid => {
       setIsLoggedIn(valid)
       setAuthChecked(true)
+      if (valid && !localStorage.getItem('onboarding_done')) {
+        setShowOnboarding(true)
+      }
     })
   }, [])
 
@@ -51,6 +56,15 @@ export default function App() {
         {activeTab === 'friends' && <FriendsPage />}
       </main>
       <HelpGuide activeTab={activeTab} portfolioView={portfolioView} />
+      {showOnboarding && (
+        <OnboardingGuide
+          onNavigate={handleTabChange}
+          onComplete={() => {
+            setShowOnboarding(false)
+            localStorage.setItem('onboarding_done', '1')
+          }}
+        />
+      )}
     </div>
   )
 }

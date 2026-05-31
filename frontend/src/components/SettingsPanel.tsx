@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Building2, TrendingUp, Globe, Trash2, Users, UserPlus, Check, XCircle } from 'lucide-react';
+import { X, Building2, TrendingUp, Globe, Trash2, Users, UserPlus, Check, XCircle, BookOpen } from 'lucide-react';
 import AccountCreationForm from './form/AccountCreationForm';
 import AssetCreationForm from './form/AssetCreationForm';
 import { surface, text } from '../styles/theme';
@@ -303,6 +303,22 @@ export default function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                   <option value="en-US">1,234.56 (US/UK)</option>
                 </select>
                 <p className="text-xs text-[var(--text-muted)]">Separador de miles y decimales</p>
+              </div>
+
+              {/* Onboarding guide */}
+              <div className={surface.creatorPanel}>
+                <label className="block text-sm font-medium text-[var(--text-secondary)]">Guía de bienvenida</label>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('onboarding_done');
+                    window.location.reload();
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-blue)]/10 hover:bg-[var(--accent-blue)]/15 border border-[var(--accent-blue)]/30 rounded-lg transition-all hover:border-[var(--accent-blue)]/50 text-[var(--accent-blue)] text-sm font-medium cursor-pointer"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Ver guía de nuevo
+                </button>
+                <p className="text-xs text-[var(--text-muted)]">Vuelve a ver el tutorial de bienvenida</p>
               </div>
             </div>
           )}

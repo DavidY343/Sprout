@@ -41,6 +41,7 @@ export default function TopBar({ activeTab, setActiveTab }: Props) {
           {tabs.map(tab => (
             <button
               key={tab.id}
+              data-tour={`tab-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
               className={`text-lg font-medium transition-all duration-200 relative cursor-pointer ${
                 activeTab === tab.id
@@ -65,6 +66,7 @@ export default function TopBar({ activeTab, setActiveTab }: Props) {
             {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
           </button>
           <button
+            data-tour="settings"
             onClick={() => setSettingsOpen(true)}
             className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition cursor-pointer"
             title="Configuración"
