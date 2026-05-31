@@ -9,6 +9,7 @@ from app.services.friend_service import (
 from app.services.account_service import get_accounts_with_balance
 from app.services.assets_service import get_all_assets, get_global_asset_allocation
 from app.services.performance_service import get_performance_metrics
+from app.services.history_chart_service import get_portfolio_growth
 from app.schemas.friendship import FriendRequest, FriendshipOut
 
 router = APIRouter()
@@ -72,3 +73,11 @@ async def friend_performance(friend_id: int, user_id: int = Depends(get_current_
     if not await is_friend(db, user_id, friend_id):
         raise HTTPException(status_code=403, detail="No sois amigos")
     return await get_performance_metrics(db, friend_id)
+
+
+@router.get("/{friend_id}/portfolio/history")
+async def friend_history(friend_id: int, user_id: int = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
+    if not await is_friend(db, user_id, friend_id):
+        raise HTTPException(status_code=403, detail="No sois amigos")
+    history = await get_portfolio_growth(db, friend_id)
+    return {"history": history}

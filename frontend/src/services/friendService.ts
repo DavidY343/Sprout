@@ -2,6 +2,8 @@ import { apiGet, apiPost, apiPut, apiDelete } from './api'
 import { Friendship } from '../types/friendship'
 import { AccountWithBalance } from '../types/account'
 import { PerformanceResponse } from '../types/performance'
+import { PortfolioHistoryResponse } from '../types/history_chart'
+import { AssetTableRow } from '../types/asset'
 
 export async function getFriends(): Promise<Friendship[]> {
   return apiGet<Friendship[]>('/friends', true)
@@ -25,8 +27,8 @@ export async function getFriendAccounts(friendId: number): Promise<AccountWithBa
   return apiGet<AccountWithBalance[]>(`/friends/${friendId}/portfolio/accounts`, true)
 }
 
-export async function getFriendAllAssets(friendId: number) {
-  return apiGet(`/friends/${friendId}/portfolio/assets/all`, true)
+export async function getFriendAllAssets(friendId: number): Promise<AssetTableRow[]> {
+  return apiGet<AssetTableRow[]>(`/friends/${friendId}/portfolio/assets/all`, true)
 }
 
 export async function getFriendAssetsGrouped(friendId: number, groupBy: string) {
@@ -35,4 +37,8 @@ export async function getFriendAssetsGrouped(friendId: number, groupBy: string) 
 
 export async function getFriendPerformance(friendId: number): Promise<PerformanceResponse> {
   return apiGet<PerformanceResponse>(`/friends/${friendId}/portfolio/performance`, true)
+}
+
+export async function getFriendHistory(friendId: number): Promise<PortfolioHistoryResponse> {
+  return apiGet<PortfolioHistoryResponse>(`/friends/${friendId}/portfolio/history`, true)
 }
