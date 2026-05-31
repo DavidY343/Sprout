@@ -31,6 +31,7 @@ CREATE TABLE accounts (
 CREATE TABLE transactions (
     transaction_id BIGSERIAL PRIMARY KEY,
     account_id BIGINT NOT NULL,
+    operation_id BIGINT,
     category VARCHAR(100),
     date TIMESTAMPTZ NOT NULL,
     amount NUMERIC(15,6) NOT NULL,
@@ -41,6 +42,9 @@ CREATE TABLE transactions (
 
     CONSTRAINT fk_transaction_account
         FOREIGN KEY (account_id) REFERENCES accounts(account_id),
+
+    CONSTRAINT fk_transaction_operation
+        FOREIGN KEY (operation_id) REFERENCES operations(operation_id) ON DELETE SET NULL,
 
     CONSTRAINT chk_transaction_type
         CHECK (type IN ('income', 'expense'))

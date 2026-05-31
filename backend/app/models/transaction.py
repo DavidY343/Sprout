@@ -8,6 +8,7 @@ class Transaction(Base):
     
     transaction_id = Column(BigInteger, primary_key=True, autoincrement=True)
     account_id = Column(BigInteger, ForeignKey("accounts.account_id"), nullable=False)
+    operation_id = Column(BigInteger, ForeignKey("operations.operation_id", ondelete="SET NULL"), nullable=True)
     category = Column(String(100))
     date = Column(DateTime(timezone=True), nullable=False)
     amount = Column(Numeric(15, 6), nullable=False)

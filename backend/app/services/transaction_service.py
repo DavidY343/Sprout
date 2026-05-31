@@ -17,6 +17,7 @@ async def create_transaction_from_operation(db: AsyncSession, operation, asset_n
     
     new_transaction = Transaction(
         account_id=operation.account_id,
+        operation_id=operation.operation_id,
         category="Inversión",
         date=operation.date,
         amount=total_amount,

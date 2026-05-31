@@ -143,21 +143,34 @@ async def update_operation(db: AsyncSession, operation_id: int, update_data: Ope
             raise ValueError(f"Fondos insuficientes. Efectivo disponible: {current_cash:.2f}€, necesario adicional: {abs(float(cash_delta)):.2f}€")
 
     # Find and update the associated cash transaction
-    # Match by account, category, date, and original amount
+    # Prefer operation_id link, fallback to amount match for legacy data
     stmt_tx = (
         select(Transaction)
         .where(
-            Transaction.account_id == operation.account_id,
-            Transaction.category == "Inversión",
-            Transaction.date == original_date,
-            Transaction.amount == original_total,
+            Transaction.operation_id == operation_id,
             Transaction.is_active == True
         )
-        .order_by(Transaction.created_at.desc())
         .limit(1)
     )
     result_tx = await db.execute(stmt_tx)
     transaction = result_tx.scalar_one_or_none()
+
+    if not transaction:
+        # Fallback: match by account, category, date, and original amount
+        stmt_tx = (
+            select(Transaction)
+            .where(
+                Transaction.account_id == operation.account_id,
+                Transaction.category == "Inversión",
+                Transaction.date == original_date,
+                Transaction.amount == original_total,
+                Transaction.is_active == True
+            )
+            .order_by(Transaction.created_at.desc())
+            .limit(1)
+        )
+        result_tx = await db.execute(stmt_tx)
+        transaction = result_tx.scalar_one_or_none()
 
     if transaction:
         is_buy = operation.operation_type == 'buy'
@@ -198,27 +211,39 @@ async def delete_operation(db: AsyncSession, operation_id: int, user_id: int) ->
     if not operation:
         raise ValueError("Operation not found or doesn't belong to user")
 
-    # Calculate the amount to find the matching transaction
-    amount = operation.quantity * operation.price
-    fees = operation.fees or 0
-    is_buy = operation.operation_type == 'buy'
-    total = (amount + fees) if is_buy else (amount - fees)
-
-    # Soft-delete the associated cash transaction
+    # Find the associated cash transaction by operation_id (preferred) or amount match (legacy)
     stmt_tx = (
         select(Transaction)
         .where(
-            Transaction.account_id == operation.account_id,
-            Transaction.category == "Inversión",
-            Transaction.date == operation.date,
-            Transaction.amount == total,
+            Transaction.operation_id == operation_id,
             Transaction.is_active == True
         )
-        .order_by(Transaction.created_at.desc())
         .limit(1)
     )
     result_tx = await db.execute(stmt_tx)
     transaction = result_tx.scalar_one_or_none()
+
+    if not transaction:
+        # Fallback: match by amount for legacy transactions without operation_id
+        amount = operation.quantity * operation.price
+        fees = operation.fees or 0
+        is_buy = operation.operation_type == 'buy'
+        total = (amount + fees) if is_buy else (amount - fees)
+        stmt_tx = (
+            select(Transaction)
+            .where(
+                Transaction.account_id == operation.account_id,
+                Transaction.category == "Inversión",
+                Transaction.date == operation.date,
+                Transaction.amount == total,
+                Transaction.is_active == True
+            )
+            .order_by(Transaction.created_at.desc())
+            .limit(1)
+        )
+        result_tx = await db.execute(stmt_tx)
+        transaction = result_tx.scalar_one_or_none()
+
     if transaction:
         transaction.is_active = False
 
