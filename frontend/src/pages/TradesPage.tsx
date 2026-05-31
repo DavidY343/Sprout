@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { TradeHistory, OperationUpdate } from '../types/trade'
-import { getTradeHistory, updateTrade } from '../services/tradeService'
-import { Plus, Check, X } from 'lucide-react'
+import { getTradeHistory, updateTrade, deleteTrade } from '../services/tradeService'
+import { Plus, Check, X, Trash2 } from 'lucide-react'
 import AddTradeForm from '../components/form/AddTradeForm'
 import { layout, surface, table } from '../styles/theme'
 
@@ -35,6 +35,14 @@ export default function TradesPage() {
   }
 
   const cancelEdit = () => { setEditingId(null); setEditData({}); setEditError(null) }
+
+  const handleDelete = async (trade: TradeHistory) => {
+    if (!confirm(`¿Eliminar operación de ${trade.asset_name}?`)) return
+    try {
+      await deleteTrade(trade.operation_id)
+      await fetchTradeHistory()
+    } catch { /* */ }
+  }
 
   const saveEdit = async () => {
     if (!editingId) return
@@ -77,9 +85,11 @@ export default function TradesPage() {
               <tr>
                 <th className={table.headCell}>Fecha</th>
                 <th className={table.headCell}>Activo</th>
+                <th className={table.headCell}>Cuenta</th>
                 <th className={table.headCell + ' text-right'}>Cantidad</th>
                 <th className={table.headCell + ' text-right'}>Precio</th>
                 <th className={table.headCell + ' text-right'}>Total</th>
+                <th className={table.headCell + ' w-10'}></th>
               </tr>
             </thead>
             <tbody>
@@ -97,6 +107,7 @@ export default function TradesPage() {
                         {trade.asset_name}
                       </button>
                     </td>
+                    <td className={table.cell + ' text-sm text-[var(--text-muted)]'}>{trade.account_name}</td>
                     <td className={table.cell + ' text-right'}>
                       <input type="number" step="any" value={editData.quantity ?? ''}
                         onChange={e => setEditData(p => ({ ...p, quantity: parseFloat(e.target.value) || 0 }))}
@@ -116,6 +127,7 @@ export default function TradesPage() {
                         {editError && <span className="text-xs text-[var(--accent-red)] max-w-[180px] text-right">{editError}</span>}
                       </div>
                     </td>
+                    <td className={table.cell}></td>
                   </tr>
                 ) : (
                   <tr key={trade.operation_id} className={table.bodyRow + ' cursor-pointer hover:bg-[var(--bg-surface-alt)]'} onClick={() => startEdit(trade)}>
@@ -128,12 +140,19 @@ export default function TradesPage() {
                       </span>
                       <span className="text-xs text-[var(--text-placeholder)] ml-2">{trade.ticker || ''}</span>
                     </td>
+                    <td className={table.cell + ' text-sm text-[var(--text-muted)]'}>{trade.account_name}</td>
                     <td className={table.cell + ' text-right text-sm text-[var(--text-secondary)] font-mono'}>{trade.quantity}</td>
                     <td className={table.cell + ' text-right text-sm text-[var(--text-secondary)] font-mono'}>
                       €{trade.price.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
                     </td>
                     <td className={table.cell + ' text-right text-sm font-semibold text-[var(--text-primary)] font-mono'}>
                       €{(trade.quantity * trade.price).toLocaleString('es-ES', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className={table.cell + ' text-center'}>
+                      <button onClick={(e) => { e.stopPropagation(); handleDelete(trade) }}
+                        className="p-1 rounded hover:bg-[var(--accent-red)]/20 text-[var(--text-muted)] hover:text-[var(--accent-red)] cursor-pointer transition">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 )

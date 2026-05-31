@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user_id, get_db
-from app.services.trade_service import get_trade_history, create_operation, update_operation
+from app.services.trade_service import get_trade_history, create_operation, update_operation, delete_operation
 from app.services.transaction_service import create_transaction_from_operation
 
 from app.models.asset import Asset
@@ -70,3 +70,20 @@ async def update_existing_operation(
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Error al actualizar la operación: {str(e)}")
+
+
+@router.delete("/{operation_id}", status_code=204)
+async def delete_existing_operation(
+    operation_id: int,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        await delete_operation(db, operation_id, user_id)
+        await db.commit()
+    except ValueError as e:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al eliminar la operación: {str(e)}")

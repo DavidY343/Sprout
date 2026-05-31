@@ -182,3 +182,45 @@ async def update_operation(db: AsyncSession, operation_id: int, update_data: Ope
     await db.execute(stmt_upsert)
 
     return operation
+
+
+async def delete_operation(db: AsyncSession, operation_id: int, user_id: int) -> None:
+    """Delete an operation and its associated cash transaction."""
+    # Fetch and verify ownership
+    stmt = (
+        select(Operation)
+        .join(Account, Operation.account_id == Account.account_id)
+        .where(Operation.operation_id == operation_id, Account.user_id == user_id)
+    )
+    result = await db.execute(stmt)
+    operation = result.scalar_one_or_none()
+
+    if not operation:
+        raise ValueError("Operation not found or doesn't belong to user")
+
+    # Calculate the amount to find the matching transaction
+    amount = operation.quantity * operation.price
+    fees = operation.fees or 0
+    is_buy = operation.operation_type == 'buy'
+    total = (amount + fees) if is_buy else (amount - fees)
+
+    # Soft-delete the associated cash transaction
+    stmt_tx = (
+        select(Transaction)
+        .where(
+            Transaction.account_id == operation.account_id,
+            Transaction.category == "Inversión",
+            Transaction.date == operation.date,
+            Transaction.amount == total,
+            Transaction.is_active == True
+        )
+        .order_by(Transaction.created_at.desc())
+        .limit(1)
+    )
+    result_tx = await db.execute(stmt_tx)
+    transaction = result_tx.scalar_one_or_none()
+    if transaction:
+        transaction.is_active = False
+
+    # Delete the operation
+    await db.delete(operation)

@@ -1,5 +1,5 @@
 import { TradeHistory, Operation, OperationCreate, OperationUpdate } from '../types/trade';
-import { apiGet, apiPost, apiPut } from './api';
+import { apiGet, apiPost, apiPut, apiDelete } from './api';
 
 /**
  * Obtiene el historial completo de operaciones del usuario
@@ -49,6 +49,15 @@ export async function updateTrade(operationId: number, updateData: OperationUpda
         return data;
     } catch (error) {
         console.error('Error updating trade:', error);
+        throw error;
+    }
+}
+
+export async function deleteTrade(operationId: number): Promise<void> {
+    try {
+        await apiDelete<void>(`/trades/${operationId}`, true);
+    } catch (error) {
+        console.error('Error deleting trade:', error);
         throw error;
     }
 }
