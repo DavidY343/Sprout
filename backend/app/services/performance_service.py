@@ -7,7 +7,7 @@ async def get_performance_metrics(db: AsyncSession, user_id: int):
         SELECT MIN(date)::date AS day, NOW()::date AS last_day
         FROM transactions t
         JOIN accounts a ON t.account_id = a.account_id
-        WHERE a.user_id = :user_id
+        WHERE a.user_id = :user_id AND t.is_active = TRUE
         UNION ALL
         SELECT (day + interval '1 day')::date, last_day
         FROM daily_series
@@ -67,7 +67,7 @@ async def get_performance_metrics(db: AsyncSession, user_id: int):
                 OVER (ORDER BY d.day) as efectivo_total
         FROM daily_series d
         CROSS JOIN (SELECT account_id FROM accounts WHERE user_id = :user_id) a
-        LEFT JOIN transactions t ON d.day = t.date::date AND t.account_id = a.account_id
+        LEFT JOIN transactions t ON d.day = t.date::date AND t.account_id = a.account_id AND t.is_active = TRUE
         GROUP BY d.day
     ),
     portfolio_history AS (

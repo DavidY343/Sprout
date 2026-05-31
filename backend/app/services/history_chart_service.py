@@ -9,7 +9,7 @@ async def get_portfolio_growth(db: AsyncSession, user_id: int):
         SELECT MIN(date)::date AS day, NOW()::date AS last_day
         FROM transactions t
         JOIN accounts a ON t.account_id = a.account_id
-        WHERE a.user_id = :user_id
+        WHERE a.user_id = :user_id AND t.is_active = TRUE
         UNION ALL
         SELECT (day + interval '1 day')::date, last_day
         FROM daily_series
@@ -76,7 +76,7 @@ async def get_portfolio_growth(db: AsyncSession, user_id: int):
             OVER (ORDER BY d.day) as efectivo_total
     FROM daily_series d
     CROSS JOIN (SELECT account_id FROM accounts WHERE user_id = :user_id) a
-    LEFT JOIN transactions t ON d.day = t.date::date AND t.account_id = a.account_id
+    LEFT JOIN transactions t ON d.day = t.date::date AND t.account_id = a.account_id AND t.is_active = TRUE
     GROUP BY d.day
     )
     SELECT 
@@ -104,7 +104,7 @@ async def get_account_growth(db: AsyncSession, account_id: int):
     WITH RECURSIVE daily_series AS (
         SELECT MIN(date)::date AS day, NOW()::date AS last_day
         FROM transactions
-        WHERE account_id = :account_id
+        WHERE account_id = :account_id AND is_active = TRUE
         UNION ALL
         SELECT (day + interval '1 day')::date, last_day
         FROM daily_series
@@ -163,7 +163,7 @@ async def get_account_growth(db: AsyncSession, account_id: int):
             SUM(SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE -t.amount END)) 
                 OVER (ORDER BY d.day) as efectivo_total
         FROM daily_series d
-        LEFT JOIN transactions t ON d.day = t.date::date AND t.account_id = :account_id
+        LEFT JOIN transactions t ON d.day = t.date::date AND t.account_id = :account_id AND t.is_active = TRUE
         GROUP BY d.day
     )
     SELECT 

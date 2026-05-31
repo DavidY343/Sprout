@@ -65,6 +65,7 @@ async def get_user_transactions(db: AsyncSession, user_id: int):
         .join(Account)
         .options(selectinload(Transaction.account))
         .where(Account.user_id == user_id)
+        .where(Transaction.is_active == True)
         .order_by(Transaction.date.desc())
     )
     result = await db.execute(stmt)
