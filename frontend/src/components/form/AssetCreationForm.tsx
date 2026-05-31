@@ -65,6 +65,7 @@ export default function AssetCreationForm({ onSuccess }: AssetCreationFormProps)
             className={input.select}>
             <option value="etf">ETF</option>
             <option value="fund">Fondo indexado</option>
+            <option value="money_market">Fondo monetario</option>
             <option value="stock">Acción</option>
             <option value="crypto">Crypto</option>
             <option value="bond">Bono</option>

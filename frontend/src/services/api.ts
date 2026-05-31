@@ -132,3 +132,14 @@ export async function apiDelete<T>(
 ): Promise<T> {
     return apiRequest<T>(endpoint, { method: 'DELETE' }, requireAuth);
 }
+
+export async function apiPatch<T>(
+    endpoint: string,
+    data: any,
+    requireAuth: boolean = false
+): Promise<T> {
+    return apiRequest<T>(endpoint, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    }, requireAuth);
+}

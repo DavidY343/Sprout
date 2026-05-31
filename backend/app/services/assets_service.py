@@ -38,7 +38,7 @@ async def create_asset(db: AsyncSession, asset_data: AssetCreate, user_id: int) 
 async def get_all_assets_with_prices(db: AsyncSession, user_id: int):
     """Returns active assets visible to the user, with their latest price."""
     query = text("""
-        SELECT a.asset_id, a.name, a.ticker, a.isin, a.type, a.currency,
+        SELECT a.asset_id, a.name, a.ticker, a.isin, a.type, a.theme, a.currency,
                COALESCE(lp.price, 0) AS current_price
         FROM assets a
         JOIN user_assets ua ON ua.asset_id = a.asset_id AND ua.user_id = :user_id

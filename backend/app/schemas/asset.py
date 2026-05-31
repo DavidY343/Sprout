@@ -20,7 +20,22 @@ class AssetCreate(BaseModel):
     @field_validator('type')
     @classmethod
     def validate_type(cls, v):
-        valid_types = ['stock', 'crypto', 'bond', 'etf', 'fund', 'reit']
+        valid_types = ['stock', 'crypto', 'bond', 'etf', 'fund', 'reit', 'money_market']
+        if v.lower() not in valid_types:
+            raise ValueError(f'Type must be one of: {", ".join(valid_types)}')
+        return v.lower()
+
+# Schema para actualizar un asset (solo type y theme)
+class AssetUpdate(BaseModel):
+    type: Optional[str] = None
+    theme: Optional[str] = None
+
+    @field_validator('type')
+    @classmethod
+    def validate_type(cls, v):
+        if v is None:
+            return v
+        valid_types = ['stock', 'crypto', 'bond', 'etf', 'fund', 'reit', 'money_market']
         if v.lower() not in valid_types:
             raise ValueError(f'Type must be one of: {", ".join(valid_types)}')
         return v.lower()

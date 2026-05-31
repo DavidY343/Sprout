@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
-import { X, Building2, TrendingUp, Globe, Trash2, Users, UserPlus, Check, XCircle, BookOpen } from 'lucide-react';
+import { X, Building2, TrendingUp, Globe, Trash2, Users, UserPlus, Check, XCircle, BookOpen, Pencil } from 'lucide-react';
 import AccountCreationForm from './form/AccountCreationForm';
 import AssetCreationForm from './form/AssetCreationForm';
 import { surface, text } from '../styles/theme';
-import { getAssetsWithPrices, AssetWithPrice, removeAsset } from '../services/assetService';
+import { getAssetsWithPrices, AssetWithPrice, removeAsset, updateAsset } from '../services/assetService';
 import { getFriends, sendFriendRequest, acceptFriendRequest, removeFriend } from '../services/friendService';
 import { Friendship } from '../types/friendship';
+
+const TYPE_LABELS: Record<string, string> = {
+  etf: 'ETF', fund: 'Fondo', money_market: 'F. Monetario', stock: 'Acción', crypto: 'Crypto', bond: 'Bono', reit: 'REIT',
+};
 
 interface SettingsPanelProps {
   open: boolean;
@@ -17,6 +21,9 @@ export default function SettingsPanel({ open, onClose, externalSection }: Settin
   const [section, setSection] = useState<'accounts' | 'assets' | 'friends' | 'preferences'>('accounts');
   const [userAssets, setUserAssets] = useState<AssetWithPrice[]>([]);
   const [removing, setRemoving] = useState<number | null>(null);
+  const [editing, setEditing] = useState<number | null>(null);
+  const [editType, setEditType] = useState('');
+  const [editTheme, setEditTheme] = useState('');
   const [friends, setFriends] = useState<Friendship[]>([]);
   const [friendEmail, setFriendEmail] = useState('');
   const [friendLoading, setFriendLoading] = useState(false);
@@ -149,25 +156,77 @@ export default function SettingsPanel({ open, onClose, externalSection }: Settin
               </div>
               <AssetCreationForm onSuccess={() => loadAssets()} />
 
-              {/* User's assets list with delete */}
+              {/* User's assets list with edit/delete */}
               {userAssets.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-2">Tus activos</h4>
                   <div className="space-y-1">
                     {userAssets.map(a => (
-                      <div key={a.asset_id} className="flex items-center justify-between px-3 py-2 rounded-lg border border-[var(--border)] bg-[#FAFAF8]">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-[var(--text-primary)]">{a.name}</span>
-                          <span className="text-xs text-[var(--text-muted)] font-mono">{a.ticker || a.isin || '—'}</span>
+                      <div key={a.asset_id} className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface-alt)]">
+                        <div className="flex items-center justify-between px-3 py-2">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-[var(--text-primary)]">{a.name}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-[var(--text-muted)] font-mono">{a.ticker || a.isin || '—'}</span>
+                              <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--bg-surface-hover)] text-[var(--text-secondary)]">{TYPE_LABELS[a.type] || a.type}</span>
+                              {a.theme && <span className="text-xs text-[var(--text-muted)]">{a.theme}</span>}
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => { setEditing(editing === a.asset_id ? null : a.asset_id); setEditType(a.type); setEditTheme(a.theme || ''); }}
+                              className="p-1.5 rounded text-[var(--text-muted)] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/10 transition cursor-pointer"
+                              title="Editar tipo y temática"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleRemoveAsset(a.asset_id, a.name)}
+                              disabled={removing === a.asset_id}
+                              className="p-1.5 rounded text-[var(--text-muted)] hover:text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 transition cursor-pointer disabled:opacity-40"
+                              title="Eliminar activo y todas sus operaciones"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          onClick={() => handleRemoveAsset(a.asset_id, a.name)}
-                          disabled={removing === a.asset_id}
-                          className="p-1.5 rounded text-[var(--text-muted)] hover:text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 transition cursor-pointer disabled:opacity-40"
-                          title="Eliminar activo y todas sus operaciones"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+
+                        {/* Inline edit panel */}
+                        {editing === a.asset_id && (
+                          <div className="px-3 pb-3 pt-1 border-t border-[var(--border)] flex gap-2 items-end">
+                            <div className="flex-1">
+                              <label className="text-xs text-[var(--text-muted)] mb-0.5 block">Tipo</label>
+                              <select value={editType} onChange={e => setEditType(e.target.value)}
+                                className="w-full bg-[var(--bg-surface)] border border-[var(--border-input)] rounded px-2 py-1.5 text-xs text-[var(--text-primary)]">
+                                <option value="etf">ETF</option>
+                                <option value="fund">Fondo indexado</option>
+                                <option value="money_market">Fondo monetario</option>
+                                <option value="stock">Acción</option>
+                                <option value="crypto">Crypto</option>
+                                <option value="bond">Bono</option>
+                                <option value="reit">REIT</option>
+                              </select>
+                            </div>
+                            <div className="flex-1">
+                              <label className="text-xs text-[var(--text-muted)] mb-0.5 block">Temática</label>
+                              <input type="text" value={editTheme} onChange={e => setEditTheme(e.target.value)}
+                                placeholder="Ej: Tecnología"
+                                className="w-full bg-[var(--bg-surface)] border border-[var(--border-input)] rounded px-2 py-1.5 text-xs text-[var(--text-primary)]" />
+                            </div>
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await updateAsset(a.asset_id, { type: editType, theme: editTheme || undefined });
+                                  setUserAssets(prev => prev.map(x => x.asset_id === a.asset_id ? { ...x, type: editType, theme: editTheme || null } : x));
+                                  setEditing(null);
+                                } catch { /* */ }
+                              }}
+                              className="px-3 py-1.5 rounded bg-[var(--accent-blue)] text-white text-xs font-medium hover:opacity-90 transition cursor-pointer flex-shrink-0"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from app.core.dependencies import get_current_user_id, get_db
 from app.services.assets_service import create_asset, get_user_assets, get_all_assets_with_prices
-from app.schemas.asset import AssetCreate, AssetResponse
+from app.schemas.asset import AssetCreate, AssetResponse, AssetUpdate
 
 router = APIRouter()
 
@@ -41,6 +41,36 @@ async def get_user_all_assets(user_id: int = Depends(get_current_user_id), db: A
         return assets
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.patch("/{asset_id}", response_model=AssetResponse, summary="Update asset type and/or theme")
+async def update_asset(asset_id: int, update: AssetUpdate, user_id: int = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
+    """Update the type and/or theme of an asset. Only fields provided will be updated."""
+    # Verify user has this asset
+    check = await db.execute(
+        text("SELECT 1 FROM user_assets WHERE user_id = :uid AND asset_id = :aid"),
+        {"uid": user_id, "aid": asset_id}
+    )
+    if not check.fetchone():
+        raise HTTPException(status_code=404, detail="Asset not found or not yours")
+
+    sets = []
+    params: dict = {"aid": asset_id}
+    if update.type is not None:
+        sets.append("type = :type")
+        params["type"] = update.type
+    if update.theme is not None:
+        sets.append("theme = :theme")
+        params["theme"] = update.theme
+    if not sets:
+        raise HTTPException(status_code=400, detail="Nothing to update")
+
+    await db.execute(text(f"UPDATE assets SET {', '.join(sets)} WHERE asset_id = :aid"), params)
+    await db.commit()
+
+    result = await db.execute(text("SELECT * FROM assets WHERE asset_id = :aid"), {"aid": asset_id})
+    row = result.mappings().fetchone()
+    return dict(row)
 
 
 @router.delete("/{asset_id}", summary="Remove an asset from user — deletes all associated operations and transactions")

@@ -1,5 +1,5 @@
 import { AssetAllocation, AssetTableRow, Asset, AssetCreate } from '../types/asset'
-import { apiGet, apiPost, apiDelete } from './api'
+import { apiGet, apiPost, apiDelete, apiPatch } from './api'
 
 
 
@@ -61,6 +61,7 @@ export interface AssetWithPrice {
     ticker: string | null;
     isin: string | null;
     type: string;
+    theme: string | null;
     currency: string;
     current_price: number;
 }
@@ -76,4 +77,8 @@ export async function getAssetsWithPrices(): Promise<AssetWithPrice[]> {
 
 export async function removeAsset(assetId: number): Promise<void> {
     await apiDelete<void>(`/assets/${assetId}`, true);
+}
+
+export async function updateAsset(assetId: number, data: { type?: string; theme?: string }): Promise<AssetWithPrice> {
+    return await apiPatch<AssetWithPrice>(`/assets/${assetId}`, data, true);
 }
