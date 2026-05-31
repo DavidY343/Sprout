@@ -1,6 +1,11 @@
 import psycopg2
+import os
 
-conn = psycopg2.connect('postgresql://postgres.sapyoprifklhmakewqhb:nun9i0NBYCAP6FeO@aws-1-eu-central-1.pooler.supabase.com:5432/postgres')
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if not DATABASE_URL:
+    raise SystemExit("Set DATABASE_URL environment variable")
+
+conn = psycopg2.connect(DATABASE_URL)
 cur = conn.cursor()
 
 cur.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE')
