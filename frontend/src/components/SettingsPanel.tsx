@@ -10,9 +10,10 @@ import { Friendship } from '../types/friendship';
 interface SettingsPanelProps {
   open: boolean;
   onClose: () => void;
+  externalSection?: 'accounts' | 'assets' | 'friends' | 'preferences';
 }
 
-export default function SettingsPanel({ open, onClose }: SettingsPanelProps) {
+export default function SettingsPanel({ open, onClose, externalSection }: SettingsPanelProps) {
   const [section, setSection] = useState<'accounts' | 'assets' | 'friends' | 'preferences'>('accounts');
   const [userAssets, setUserAssets] = useState<AssetWithPrice[]>([]);
   const [removing, setRemoving] = useState<number | null>(null);
@@ -25,6 +26,10 @@ export default function SettingsPanel({ open, onClose }: SettingsPanelProps) {
     if (open && section === 'assets') loadAssets();
     if (open && section === 'friends') loadFriends();
   }, [open, section]);
+
+  useEffect(() => {
+    if (externalSection) setSection(externalSection);
+  }, [externalSection]);
 
   const loadFriends = async () => {
     try { setFriends(await getFriends()); } catch { /* */ }
@@ -87,7 +92,7 @@ export default function SettingsPanel({ open, onClose }: SettingsPanelProps) {
       <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
 
       {/* Panel (slide from right) */}
-      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-[var(--bg-surface)] border-l border-[var(--border)] z-50 shadow-xl flex flex-col animate-slide-in">
+      <div data-tour="settings-panel" className="fixed top-0 right-0 h-full w-full max-w-md bg-[var(--bg-surface)] border-l border-[var(--border)] z-50 shadow-xl flex flex-col animate-slide-in">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
           <h2 className="text-lg font-semibold text-[var(--text-primary)]">Configuración</h2>
@@ -104,6 +109,7 @@ export default function SettingsPanel({ open, onClose }: SettingsPanelProps) {
           {sections.map(s => (
             <button
               key={s.id}
+              data-tour={`settings-${s.id}`}
               onClick={() => setSection(s.id)}
               className={`flex items-center gap-2 px-3 py-2.5 text-sm font-medium border-b-2 transition cursor-pointer ${
                 section === s.id

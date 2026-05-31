@@ -17,6 +17,8 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [authChecked, setAuthChecked] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [settingsSection, setSettingsSection] = useState<'accounts' | 'assets' | 'friends' | 'preferences' | undefined>(undefined)
 
   useEffect(() => {
     // Quick sync check for instant UI (avoids flash)
@@ -48,7 +50,7 @@ export default function App() {
 
   return (
     <div className={app.body}>
-      <TopBar activeTab={activeTab} setActiveTab={handleTabChange} />
+      <TopBar activeTab={activeTab} setActiveTab={handleTabChange} settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} settingsSection={settingsSection} />
       <main className={app.main}>
         {activeTab === 'portfolio' && <PortfolioPage key={portfolioKey} view={portfolioView} setView={setPortfolioView} />}
         {activeTab === 'trades' && <TradesPage />}
@@ -60,8 +62,12 @@ export default function App() {
         <OnboardingGuide
           onNavigate={handleTabChange}
           onSetView={setPortfolioView}
+          onOpenSettings={(section) => { setSettingsSection(section); setSettingsOpen(true) }}
+          onCloseSettings={() => { setSettingsOpen(false); setSettingsSection(undefined) }}
           onComplete={() => {
             setShowOnboarding(false)
+            setSettingsOpen(false)
+            setSettingsSection(undefined)
             localStorage.setItem('onboarding_done', '1')
           }}
         />

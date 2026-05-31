@@ -8,13 +8,17 @@ interface TourStep {
   body: string
   navigateTo?: string    // tab id to switch to
   dashboardView?: string // portfolio sub-view to switch to
-  position?: 'bottom' | 'top' // tooltip position relative to target
+  position?: 'bottom' | 'top'
+  openSettings?: 'accounts' | 'assets' | 'friends' | 'preferences'
+  closeSettings?: boolean
 }
 
 interface Props {
   onComplete: () => void
   onNavigate: (tab: string) => void
   onSetView: (view: string) => void
+  onOpenSettings: (section: 'accounts' | 'assets' | 'friends' | 'preferences') => void
+  onCloseSettings: () => void
 }
 
 /* ── Steps ──────────────────────────────────────────────── */
@@ -23,66 +27,101 @@ const STEPS: TourStep[] = [
     title: '¡Bienvenido a Sprout! 🌱',
     body: 'Tu centro de control financiero personal. Te guiaremos paso a paso por toda la app para que no te pierdas nada.',
   },
+
+  // ── Settings ──
   {
     target: '[data-tour="settings"]',
     title: '⚙️ Configuración',
-    body: 'Lo primero: crea tus cuentas de inversión (Trade Republic, Degiro, MyInvestor…) y añade los activos que tienes con su ticker de Yahoo Finance. Todo empieza aquí.',
+    body: 'Todo empieza aquí. Abre la configuración para crear cuentas, añadir activos, gestionar amigos y ajustar tus preferencias.',
   },
+  {
+    target: '[data-tour="settings-accounts"]',
+    title: '🏦 Cuentas',
+    body: 'Crea tus cuentas de inversión: Trade Republic, MyInvestor, Degiro, IBKR… Cada cuenta tendrá su propio balance y seguimiento.',
+    openSettings: 'accounts',
+  },
+  {
+    target: '[data-tour="settings-assets"]',
+    title: '📋 Activos',
+    body: 'Añade los activos que tienes en cada cuenta usando su ticker de Yahoo Finance (ej: AAPL, VWCE.DE, AMP.MC). Sprout actualizará sus precios automáticamente.',
+    openSettings: 'assets',
+  },
+  {
+    target: '[data-tour="settings-friends"]',
+    title: '🤝 Amigos',
+    body: 'Envía solicitudes de amistad por email. Cuando acepten, podrás ver su cartera en modo lectura y viceversa.',
+    openSettings: 'friends',
+  },
+  {
+    target: '[data-tour="settings-preferences"]',
+    title: '🔧 Preferencias',
+    body: 'Elige tu divisa, formato numérico y vista por defecto. También puedes volver a lanzar esta guía desde aquí.',
+    openSettings: 'preferences',
+  },
+
+  // ── Main tabs ──
   {
     target: '[data-tour="tab-trades"]',
     title: '📈 Operaciones',
-    body: 'Registra cada compra y venta de activos. Sprout calculará automáticamente tu precio medio, rendimiento, peso en cartera y beneficio acumulado.',
+    body: 'Registra cada compra y venta de activos. Sprout calculará automáticamente tu precio medio, rendimiento, peso en cartera y beneficio.',
     navigateTo: 'trades',
+    closeSettings: true,
   },
   {
     target: '[data-tour="tab-transactions"]',
     title: '💰 Balances',
-    body: 'Aquí van los movimientos de dinero: depósitos, retiradas, dividendos y comisiones. Así Sprout conocerá tu efectivo real en cada cuenta.',
+    body: 'Depósitos, retiradas, dividendos y comisiones. Así Sprout conocerá tu efectivo real en cada cuenta.',
     navigateTo: 'transactions',
   },
+
+  // ── Dashboard sub-views ──
   {
     target: '[data-tour="tab-portfolio"]',
     title: '📊 Dashboard',
-    body: 'El corazón de Sprout. Vamos a explorar sus tres vistas internas…',
+    body: 'El corazón de Sprout. Tiene tres vistas internas que vamos a explorar…',
     navigateTo: 'portfolio',
   },
   {
     target: '[data-tour="sidebar-toggle"]',
     title: '☰ Menú de vistas',
-    body: 'Usa este botón para abrir el menú lateral y cambiar entre las tres vistas del Dashboard: Resumen, Distribución y Mapa.',
+    body: 'Abre este menú lateral para cambiar entre las tres vistas del Dashboard.',
     navigateTo: 'portfolio',
     dashboardView: 'resumen',
   },
   {
     target: '[data-tour="view-resumen"]',
-    title: '🏠 Vista: Resumen',
-    body: 'Tu cuadro de mandos principal. Aquí ves el valor total de tu cartera, rendimientos (1M, 3M, YTD, Total), el gráfico de evolución histórica y una tabla con todos tus activos.',
+    title: '🏠 Resumen',
+    body: 'Tu cuadro de mandos: valor total, rendimientos (1M, 3M, YTD, Total), gráfico de evolución histórica y tabla con todos tus activos.',
     navigateTo: 'portfolio',
     dashboardView: 'resumen',
   },
   {
     target: '[data-tour="view-distribucion"]',
-    title: '🍩 Vista: Distribución',
-    body: 'Dos gráficos de donut interactivos: uno muestra cómo se reparte el capital entre tus cuentas y otro la distribución de activos por tipo, temática o individualmente.',
+    title: '🍩 Distribución',
+    body: 'Dos donuts interactivos: distribución de capital entre cuentas y distribución de activos por tipo, temática o individual.',
     navigateTo: 'portfolio',
     dashboardView: 'distribucion',
   },
   {
     target: '[data-tour="view-mapa"]',
-    title: '🗺️ Vista: Mapa',
-    body: 'Un treemap visual donde el tamaño de cada bloque representa el valor del activo y el color indica su rendimiento. Verde = ganancia, rojo = pérdida. Ideal para ver el panorama completo de un vistazo.',
+    title: '🗺️ Mapa',
+    body: 'Treemap visual: el tamaño es el valor del activo, el color su rendimiento. Verde = ganancia, rojo = pérdida.',
     navigateTo: 'portfolio',
     dashboardView: 'mapa',
   },
+
+  // ── Friends ──
   {
     target: '[data-tour="tab-friends"]',
     title: '👥 Amigos',
-    body: 'Añade amigos por email desde Configuración → Amigos. Podrás ver sus carteras en modo solo lectura y comparar estrategias de inversión.',
+    body: 'Aquí verás las carteras de tus amigos en modo lectura. Compara estrategias y aprende de otros inversores.',
     navigateTo: 'friends',
   },
+
+  // ── Farewell ──
   {
     title: '¡Todo listo! 🚀',
-    body: 'Ya conoces Sprout. Ve a ⚙️ Configuración, crea tu primera cuenta, añade tus activos y empieza a registrar operaciones. Puedes repetir esta guía en cualquier momento desde Configuración → Preferencias.',
+    body: 'Ya conoces Sprout. Ve a ⚙️ Configuración, crea tu primera cuenta, añade tus activos y empieza a registrar operaciones. Puedes repetir esta guía desde Configuración → Preferencias.',
   },
 ]
 
@@ -91,7 +130,7 @@ const GAP = 14
 const TOOLTIP_W = 360
 
 /* ── Component ──────────────────────────────────────────── */
-export default function OnboardingGuide({ onComplete, onNavigate, onSetView }: Props) {
+export default function OnboardingGuide({ onComplete, onNavigate, onSetView, onOpenSettings, onCloseSettings }: Props) {
   const [step, setStep] = useState(0)
   const [rect, setRect] = useState<DOMRect | null>(null)
   const current = STEPS[step]
@@ -108,14 +147,23 @@ export default function OnboardingGuide({ onComplete, onNavigate, onSetView }: P
   }, [current.target])
 
   useEffect(() => {
+    // Close settings first if this step requires it
+    if (current.closeSettings) onCloseSettings()
+    // Navigate to tab
     if (current.navigateTo) onNavigate(current.navigateTo)
+    // Switch dashboard sub-view
     if (current.dashboardView) onSetView(current.dashboardView)
-    const t = setTimeout(updateRect, 120) // slightly longer for sub-view render
+    // Open settings to a specific section
+    if (current.openSettings) onOpenSettings(current.openSettings)
+    // If no openSettings and no closeSettings, close settings (for non-settings steps)
+    if (!current.openSettings && !current.closeSettings) onCloseSettings()
+
+    const t = setTimeout(updateRect, 150)
     window.addEventListener('resize', updateRect)
     return () => { clearTimeout(t); window.removeEventListener('resize', updateRect) }
-  }, [step, current.navigateTo, current.dashboardView, onNavigate, onSetView, updateRect])
+  }, [step, current.navigateTo, current.dashboardView, current.openSettings, current.closeSettings, onNavigate, onSetView, onOpenSettings, onCloseSettings, updateRect])
 
-  const finish = () => { onNavigate('portfolio'); onSetView('resumen'); onComplete() }
+  const finish = () => { onCloseSettings(); onNavigate('portfolio'); onSetView('resumen'); onComplete() }
   const next = () => (isLast ? finish() : setStep(s => s + 1))
   const prev = () => setStep(s => Math.max(0, s - 1))
 

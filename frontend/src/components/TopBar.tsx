@@ -8,11 +8,13 @@ import SettingsPanel from './SettingsPanel';
 interface Props {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  settingsOpen: boolean;
+  setSettingsOpen: (open: boolean) => void;
+  settingsSection?: 'accounts' | 'assets' | 'friends' | 'preferences';
 }
 
-export default function TopBar({ activeTab, setActiveTab }: Props) {
+export default function TopBar({ activeTab, setActiveTab, settingsOpen, setSettingsOpen, settingsSection }: Props) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
   const tabs = [
@@ -89,7 +91,7 @@ export default function TopBar({ activeTab, setActiveTab }: Props) {
         </div>
       </header>
 
-      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} externalSection={settingsSection} />
     </>
   );
 }
