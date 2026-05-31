@@ -58,7 +58,7 @@ CREATE TABLE assets (
     is_active BOOLEAN DEFAULT TRUE,
 
     CONSTRAINT chk_asset_type 
-        CHECK (type IN ('stock', 'crypto', 'fund', 'etf', 'bond', 'reit'))
+        CHECK (type IN ('stock', 'crypto', 'fund', 'etf', 'bond', 'reit', 'money_market'))
 );
 
 CREATE TABLE operations (
