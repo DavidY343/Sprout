@@ -92,6 +92,7 @@ export default function PortfolioPage({ view, setView }: PortfolioPageProps) {
       <div className={layout.pageStack}>
         {/* Hamburger button */}
         <button onClick={() => setSidebarOpen(true)}
+          data-tour="sidebar-toggle"
           className="self-start p-2 rounded-lg border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--border-input)] transition cursor-pointer">
           <Menu className="w-5 h-5" />
         </button>
@@ -99,7 +100,7 @@ export default function PortfolioPage({ view, setView }: PortfolioPageProps) {
         {/* ============ VIEW: RESUMEN ============ */}
         {view === 'resumen' && (
           <>
-            <div className={`${layout.pageStack} ${surface.heroPanel}`}>
+            <div data-tour="view-resumen" className={`${layout.pageStack} ${surface.heroPanel}`}>
               <div className={glow.orbTop}></div>
               <div className={glow.orbBottom}></div>
               <div className={layout.gridKpi3}>
@@ -161,7 +162,7 @@ export default function PortfolioPage({ view, setView }: PortfolioPageProps) {
 
         {/* ============ VIEW: DISTRIBUCIÓN ============ */}
         {view === 'distribucion' && (
-          <div className={layout.grid2}>
+          <div data-tour="view-distribucion" className={layout.grid2}>
             <div className={surface.cardSm}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className={text.sectionTitle}>Distribución de cuentas</h2>
@@ -188,7 +189,7 @@ export default function PortfolioPage({ view, setView }: PortfolioPageProps) {
 
         {/* ============ VIEW: MAPA ============ */}
         {view === 'mapa' && (
-          <div className={surface.card}>
+          <div data-tour="view-mapa" className={surface.card}>
             <div className="mb-6">
               <h2 className={text.sectionTitle}>Mapa de Activos</h2>
               <p className={text.sectionDesc}>Tamaño por valor total | Color por rendimiento</p>

@@ -59,6 +59,7 @@ export default function App() {
       {showOnboarding && (
         <OnboardingGuide
           onNavigate={handleTabChange}
+          onSetView={setPortfolioView}
           onComplete={() => {
             setShowOnboarding(false)
             localStorage.setItem('onboarding_done', '1')
