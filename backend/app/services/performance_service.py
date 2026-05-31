@@ -110,8 +110,10 @@ async def get_performance_metrics(db: AsyncSession, user_id: int):
         deposits_in_period = float(current_cap) - float(past_cap)
         gain = float(current_val) - float(past_val) - deposits_in_period
 
-        # Denominator: start-of-period portfolio value, or total deposits if no prior history
-        denom = float(past_val) if float(past_val) > 0 else float(current_cap)
+        # Denominator: total capital committed = start value + new deposits
+        denom = float(past_val) + deposits_in_period
+        if denom <= 0:
+            denom = float(current_cap)
         if denom <= 0:
             return {"pct": 0.0, "abs": 0.0}
         return {"pct": round((gain / denom) * 100, 2), "abs": round(gain, 2)}
