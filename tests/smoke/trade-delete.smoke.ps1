@@ -46,7 +46,7 @@ $headers = @{ 'X-CSRF-Token' = $csrf }
 $accountId = $null
 try {
     $accBody = @{ name = "SmokeAcc_$stamp"; type = "broker"; currency = "EUR" } | ConvertTo-Json
-    $r = Invoke-WebRequest -Uri "$BASE/accounts/" -Method POST `
+    $r = Invoke-WebRequest -Uri "$BASE/accounts/create" -Method POST `
         -ContentType 'application/json' -Body $accBody -Headers $headers `
         -WebSession $session -UseBasicParsing
     $acc = $r.Content | ConvertFrom-Json
@@ -149,9 +149,13 @@ try {
     $r = Invoke-WebRequest -Uri "$BASE/trades/history" -Method GET `
         -WebSession $session -UseBasicParsing
     $history = @($r.Content | ConvertFrom-Json)
-    $found = @($history | Where-Object { $_.operation_id -eq $tradeId })
-    if ($found.Count -eq 0) { Log-OK "Trade removed from history" }
-    else { Log-FAIL "Trade still in history after delete" }
+    if ($history.Count -eq 0) {
+        Log-OK "Trade removed from history"
+    } else {
+        $found = @($history | Where-Object { $_.operation_id -eq $tradeId })
+        if ($found.Count -eq 0) { Log-OK "Trade removed from history" }
+        else { Log-FAIL "Trade still in history after delete" }
+    }
 } catch {
     Log-FAIL "Post-delete check: $($_.Exception.Message)"
 }
