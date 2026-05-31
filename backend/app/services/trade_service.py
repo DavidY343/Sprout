@@ -64,14 +64,13 @@ async def create_operation(db: AsyncSession, operation_data: OperationCreate, us
     db_operation = Operation(**operation_data.model_dump())
     db.add(db_operation)
     
-    # Preparar el Upsert
+    # Insert price only if no price exists for this asset+date (don't overwrite worker prices)
     stmt_upsert = insert(PriceHistory).values(
         asset_id=operation_data.asset_id,
         date=operation_data.date,
         price=operation_data.price
-    ).on_conflict_do_update(
-        index_elements=['asset_id', 'date'],
-        set_=dict(price=operation_data.price)
+    ).on_conflict_do_nothing(
+        index_elements=['asset_id', 'date']
     )
 
     await db.execute(stmt_upsert)
@@ -183,14 +182,13 @@ async def update_operation(db: AsyncSession, operation_id: int, update_data: Ope
         asset_name = asset.name if asset else "Unknown"
         transaction.description = f"{operation.operation_type.upper()} {operation.quantity} {asset_name}"
 
-    # Update price_history with the new price
+    # Insert price only if no price exists for this asset+date (don't overwrite worker prices)
     stmt_upsert = insert(PriceHistory).values(
         asset_id=operation.asset_id,
         date=operation.date,
         price=operation.price
-    ).on_conflict_do_update(
-        index_elements=['asset_id', 'date'],
-        set_=dict(price=operation.price)
+    ).on_conflict_do_nothing(
+        index_elements=['asset_id', 'date']
     )
     await db.execute(stmt_upsert)
 
