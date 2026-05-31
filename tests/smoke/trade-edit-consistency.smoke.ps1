@@ -15,16 +15,19 @@ function Log-Info([string]$msg) { Write-Host "    -> $msg" -ForegroundColor Gray
 function Invoke-API {
     param([string]$Method, [string]$Path, [object]$Body = $null, [string]$Token = '', [switch]$Form)
     $url = "$BASE$Path"
-    $headers = @{ 'Accept' = 'application/json' }
-    if ($Token) { $headers['Authorization'] = "Bearer $Token" }
+    $hdrs = @{ 'Accept' = 'application/json' }
+    if ($script:csrf) { $hdrs['X-CSRF-Token'] = $script:csrf }
     try {
         if ($Form) {
-            return Invoke-RestMethod -Method POST -Uri $url -Headers $headers -ContentType 'application/x-www-form-urlencoded' -Body $Body
+            $r = Invoke-WebRequest -Method POST -Uri $url -Headers $hdrs -ContentType 'application/x-www-form-urlencoded' -Body $Body -WebSession $script:session -UseBasicParsing
+            return ($r.Content | ConvertFrom-Json)
         } elseif ($null -ne $Body) {
             $json = $Body | ConvertTo-Json -Depth 10
-            return Invoke-RestMethod -Method $Method -Uri $url -Headers $headers -ContentType 'application/json' -Body $json
+            $r = Invoke-WebRequest -Method $Method -Uri $url -Headers $hdrs -ContentType 'application/json' -Body $json -WebSession $script:session -UseBasicParsing
+            return ($r.Content | ConvertFrom-Json)
         } else {
-            return Invoke-RestMethod -Method $Method -Uri $url -Headers $headers
+            $r = Invoke-WebRequest -Method $Method -Uri $url -Headers $hdrs -WebSession $script:session -UseBasicParsing
+            return ($r.Content | ConvertFrom-Json)
         }
     } catch {
         $status = $_.Exception.Response.StatusCode.value__
@@ -54,13 +57,16 @@ Log-Info "Original trade: ${QTY_ORIGINAL}x @ $PRICE_ORIGINAL = $originalCost"
 Log-Info "Edited trade:   ${QTY_EDITED}x @ $PRICE_EDITED = $editedCost"
 Log-Info "Expected cash after edit: $($DEPOSIT - $editedCost)"
 
+$script:session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+$script:csrf = ''
 $token = ''
 
 # ---- 1. Setup: Register + Account + Asset + Deposit ----
 Log-Step "1. Setup (register, account, asset, deposit)"
 try {
     $reg = Invoke-API -Method POST -Path '/auth/register' -Body @{ email=$EMAIL; password=$UPASS }
-    $token = $reg.access_token
+    $script:csrf = $reg.csrf_token
+    $token = 'cookie-auth'
     Log-OK "Registered $EMAIL"
 } catch { Log-FAIL "Register: $_"; exit 1 }
 
@@ -126,8 +132,8 @@ try {
 Log-Step "6. Verify invested_value after edit"
 try {
     $invested = [double]$portfolio2[0].invested_value
-    # invested = qty_edited * latest_price (which should be PRICE_EDITED after upsert)
-    $expectedInvested = $QTY_EDITED * $PRICE_EDITED
+    # invested = qty_edited * current_price (price_history keeps original price with ON CONFLICT DO NOTHING)
+    $expectedInvested = $QTY_EDITED * $PRICE_ORIGINAL
     Log-Info "Invested: $invested (expected: $expectedInvested)"
     if ([math]::Abs($invested - $expectedInvested) -lt 1) { Log-OK "Invested value correct after edit" }
     else { Log-FAIL "Invested mismatch: got=$invested expected=$expectedInvested" }
@@ -137,6 +143,7 @@ try {
 Log-Step "7. Verify total_value = cash + invested"
 try {
     $totalVal = [double]$portfolio2[0].total_value
+    $expectedInvested = $QTY_EDITED * $PRICE_ORIGINAL
     $expectedTotal = $expectedCashEdited + $expectedInvested
     Log-Info "Total: $totalVal (expected: $expectedTotal)"
     if ([math]::Abs($totalVal - $expectedTotal) -lt 2) { Log-OK "Total value consistent" }

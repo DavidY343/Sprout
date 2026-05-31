@@ -33,16 +33,19 @@ function Assert-GTE([string]$label, [double]$actual, [double]$floor) {
 function Invoke-API {
     param([string]$Method, [string]$Path, [object]$Body = $null, [string]$Token = '', [switch]$Form)
     $url = "$BASE$Path"
-    $headers = @{ 'Accept' = 'application/json' }
-    if ($Token) { $headers['Authorization'] = "Bearer $Token" }
+    $hdrs = @{ 'Accept' = 'application/json' }
+    if ($script:csrf) { $hdrs['X-CSRF-Token'] = $script:csrf }
     try {
         if ($Form) {
-            return Invoke-RestMethod -Method POST -Uri $url -Headers $headers -ContentType 'application/x-www-form-urlencoded' -Body $Body
+            $r = Invoke-WebRequest -Method POST -Uri $url -Headers $hdrs -ContentType 'application/x-www-form-urlencoded' -Body $Body -WebSession $script:session -UseBasicParsing
+            return ($r.Content | ConvertFrom-Json)
         } elseif ($null -ne $Body) {
             $json = $Body | ConvertTo-Json -Depth 10
-            return Invoke-RestMethod -Method $Method -Uri $url -Headers $headers -ContentType 'application/json' -Body $json
+            $r = Invoke-WebRequest -Method $Method -Uri $url -Headers $hdrs -ContentType 'application/json' -Body $json -WebSession $script:session -UseBasicParsing
+            return ($r.Content | ConvertFrom-Json)
         } else {
-            return Invoke-RestMethod -Method $Method -Uri $url -Headers $headers
+            $r = Invoke-WebRequest -Method $Method -Uri $url -Headers $hdrs -WebSession $script:session -UseBasicParsing
+            return ($r.Content | ConvertFrom-Json)
         }
     } catch {
         $status = $_.Exception.Response.StatusCode.value__
@@ -72,6 +75,15 @@ Log-Info "User A: $EMAIL_A"
 Log-Info "User B: $EMAIL_B"
 Log-Info "Scenario: User A creates VWCE+MSFT, User B only sees what they create"
 
+$script:session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+$script:csrf = ''
+
+# Per-user sessions
+$sessionA = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+$csrfA = ''
+$sessionB = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+$csrfB = ''
+
 $tokenA = ''
 $tokenB = ''
 $accA   = $null
@@ -84,15 +96,19 @@ $msftA  = $null
 
 Log-Step "1. User A: Register"
 try {
+    $script:session = $sessionA
     $reg = Invoke-API -Method POST -Path '/auth/register' -Body @{ email=$EMAIL_A; password=$PASS_A }
-    $tokenA = $reg.access_token
+    $csrfA = $reg.csrf_token
+    $script:csrf = $csrfA
+    $tokenA = 'cookie-auth'
     Log-OK "User A registered"
 } catch { Log-FAIL "User A register: $_"; exit 1 }
 
 Log-Step "2. User A: Login (verify credentials work)"
 try {
-    $login = Invoke-API -Method POST -Path '/auth/login' -Body "username=$EMAIL_A&password=$PASS_A" -Form
-    $tokenA = $login.access_token
+    $login = Invoke-API -Method POST -Path '/auth/login' -Body @{ email=$EMAIL_A; password=$PASS_A }
+    $csrfA = $login.csrf_token
+    $script:csrf = $csrfA
     Log-OK "User A login OK"
 } catch { Log-FAIL "User A login: $_"; exit 1 }
 
@@ -215,8 +231,12 @@ try {
 
 Log-Step "13. User B: Register"
 try {
+    $script:session = $sessionB
+    $script:csrf = ''
     $regB = Invoke-API -Method POST -Path '/auth/register' -Body @{ email=$EMAIL_B; password=$PASS_B }
-    $tokenB = $regB.access_token
+    $csrfB = $regB.csrf_token
+    $script:csrf = $csrfB
+    $tokenB = 'cookie-auth'
     Log-OK "User B registered"
 } catch { Log-FAIL "User B register: $_"; exit 1 }
 
@@ -271,6 +291,8 @@ try {
 } catch { Log-FAIL "User B assets isolation: $_" }
 
 Log-Step "20. User A: Still sees both assets (unchanged)"
+$script:session = $sessionA
+$script:csrf = $csrfA
 try {
     $assetsAFinal = Invoke-API -Method GET -Path '/assets/with-prices' -Token $tokenA
     $assetsAFinalList = @($assetsAFinal)
@@ -282,6 +304,8 @@ try {
 # ==========================================
 
 Log-Step "21. User B: Create account + deposit + trade (using shared VWCE)"
+$script:session = $sessionB
+$script:csrf = $csrfB
 try {
     $accB = Invoke-API -Method POST -Path '/accounts/create' -Token $tokenB `
         -Body @{ name="Degiro E2E"; type="broker"; currency="EUR" }
@@ -315,6 +339,8 @@ try {
 } catch { Log-FAIL "User B portfolio: $_" }
 
 Log-Step "23. Cross-check: User A portfolio unchanged by User B activity"
+$script:session = $sessionA
+$script:csrf = $csrfA
 try {
     $portAFinal = Invoke-API -Method GET -Path '/portfolio/accounts' -Token $tokenA
     $portAFinalList = @($portAFinal)

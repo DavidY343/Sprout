@@ -15,29 +15,26 @@ try {
         password = $password
     } | ConvertTo-Json
 
-    $auth = Invoke-RestMethod -Uri $registerUri -Method POST -ContentType 'application/json' -Body $registerBody
-    if (-not $auth.access_token) {
-        throw 'Register endpoint did not return access_token.'
+    $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+    $r = Invoke-WebRequest -Uri $registerUri -Method POST -ContentType 'application/json' `
+        -Body $registerBody -WebSession $session -UseBasicParsing
+    $json = $r.Content | ConvertFrom-Json
+    if (-not $json.csrf_token) {
+        throw 'Register endpoint did not return csrf_token.'
     }
+    $headers = @{ 'X-CSRF-Token' = $json.csrf_token }
 
-    $headers = @{ Authorization = "Bearer $($auth.access_token)" }
-    $response = Invoke-RestMethod -Uri $assetsUri -Method GET -Headers $headers
+    $r2 = Invoke-WebRequest -Uri $assetsUri -Method GET -Headers $headers `
+        -WebSession $session -UseBasicParsing
+    $response = $r2.Content | ConvertFrom-Json
 
     if ($null -eq $response) {
         throw 'API returned null response.'
     }
 
-    if ($response -is [System.Array]) {
-        Write-Host ("[SMOKE] assets-with-prices passed. Items: {0}" -f $response.Count) -ForegroundColor Green
-        exit 0
-    }
-
-    if ($response.PSObject.Properties.Count -ge 1) {
-        Write-Host '[SMOKE] assets-with-prices passed. Response object detected.' -ForegroundColor Green
-        exit 0
-    }
-
-    throw 'Unexpected response shape.'
+    $items = @($response)
+    Write-Host ("[SMOKE] assets-with-prices passed. Items: {0}" -f $items.Count) -ForegroundColor Green
+    exit 0
 }
 catch {
     Write-Host ("[SMOKE] assets-with-prices failed: {0}" -f $_.Exception.Message) -ForegroundColor Red

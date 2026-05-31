@@ -49,20 +49,23 @@ function Invoke-API {
         [switch]$Form
     )
     $url = "$BASE$Path"
-    $headers = @{ 'Accept' = 'application/json' }
-    if ($Token) { $headers['Authorization'] = "Bearer $Token" }
+    $hdrs = @{ 'Accept' = 'application/json' }
+    if ($script:csrf) { $hdrs['X-CSRF-Token'] = $script:csrf }
     try {
         if ($Form) {
-            $r = Invoke-RestMethod -Method POST -Uri $url -Headers $headers `
-                -ContentType 'application/x-www-form-urlencoded' -Body $Body
+            $r = Invoke-WebRequest -Method POST -Uri $url -Headers $hdrs `
+                -ContentType 'application/x-www-form-urlencoded' -Body $Body `
+                -WebSession $script:session -UseBasicParsing
         } elseif ($null -ne $Body) {
             $json = $Body | ConvertTo-Json -Depth 10
-            $r = Invoke-RestMethod -Method $Method -Uri $url -Headers $headers `
-                -ContentType 'application/json' -Body $json
+            $r = Invoke-WebRequest -Method $Method -Uri $url -Headers $hdrs `
+                -ContentType 'application/json' -Body $json `
+                -WebSession $script:session -UseBasicParsing
         } else {
-            $r = Invoke-RestMethod -Method $Method -Uri $url -Headers $headers
+            $r = Invoke-WebRequest -Method $Method -Uri $url -Headers $hdrs `
+                -WebSession $script:session -UseBasicParsing
         }
-        return $r
+        return ($r.Content | ConvertFrom-Json)
     } catch {
         $status = $_.Exception.Response.StatusCode.value__
         $detail = $_.ErrorDetails.Message
@@ -98,6 +101,8 @@ Log-Info "Scenario: Cuenta A deposit=$DEPOSIT_A, Cuenta B deposit=$DEPOSIT_B"
 Log-Info "Trades: ${QTY_VWCE_A}xVWCE@$PRICE_VWCE + ${QTY_MSFT_A}xMSFT@$PRICE_MSFT in A, ${QTY_VWCE_B}xVWCE@$PRICE_VWCE in B"
 Log-Info "Expected cash=$expCashAll  invested=$expInvested  total=$expTotal"
 
+$script:session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+$script:csrf = ''
 $token = ''
 $accA  = $null
 $accB  = $null
@@ -110,12 +115,12 @@ Log-Step "1. Register"
 try {
     $reg = Invoke-API -Method POST -Path '/auth/register' `
         -Body @{ email = $EMAIL; password = $UPASS }
-    if ($reg.access_token) {
-        $token = $reg.access_token
+    if ($reg.csrf_token) {
+        $script:csrf = $reg.csrf_token
+        $token = 'cookie-auth'
         Log-OK "Register OK email=$EMAIL"
-        Log-Info "Token prefix: $($token.Substring(0,[math]::Min(40,$token.Length)))..."
     } else {
-        Log-FAIL "Register: no access_token in response"
+        Log-FAIL "Register: no csrf_token in response"
     }
 } catch {
     Log-FAIL "Register failed: $_"
@@ -125,13 +130,13 @@ try {
 Log-Step "2. Login"
 # ==========================================
 try {
-    $formBody = "username=$EMAIL&password=$UPASS"
-    $login = Invoke-API -Method POST -Path '/auth/login' -Body $formBody -Form
-    if ($login.access_token) {
-        $token = $login.access_token
-        Log-OK "Login OK - token refreshed"
+    $login = Invoke-API -Method POST -Path '/auth/login' `
+        -Body @{ email = $EMAIL; password = $UPASS }
+    if ($login.csrf_token) {
+        $script:csrf = $login.csrf_token
+        Log-OK "Login OK - session refreshed"
     } else {
-        Log-FAIL "Login: no access_token"
+        Log-FAIL "Login: no csrf_token"
     }
 } catch {
     Log-FAIL "Login failed: $_"

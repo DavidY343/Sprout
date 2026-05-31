@@ -17,6 +17,7 @@ $failed = @()
 
 foreach ($test in $tests) {
     Write-Host ("[SMOKE] Running: {0}" -f $test.FullName) -ForegroundColor Cyan
+    $global:LASTEXITCODE = 0
     & $test.FullName
     if ($LASTEXITCODE -ne 0) {
         $failed += $test.FullName

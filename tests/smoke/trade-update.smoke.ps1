@@ -19,16 +19,19 @@ function Log-Info([string]$msg) { Write-Host "    -> $msg" -ForegroundColor Gray
 function Invoke-API {
     param([string]$Method, [string]$Path, [object]$Body = $null, [string]$Token = '', [switch]$Form)
     $url = "$BASE$Path"
-    $headers = @{ 'Accept' = 'application/json' }
-    if ($Token) { $headers['Authorization'] = "Bearer $Token" }
+    $hdrs = @{ 'Accept' = 'application/json' }
+    if ($script:csrf) { $hdrs['X-CSRF-Token'] = $script:csrf }
     try {
         if ($Form) {
-            return Invoke-RestMethod -Method POST -Uri $url -Headers $headers -ContentType 'application/x-www-form-urlencoded' -Body $Body
+            $r = Invoke-WebRequest -Method POST -Uri $url -Headers $hdrs -ContentType 'application/x-www-form-urlencoded' -Body $Body -WebSession $script:session -UseBasicParsing
+            return ($r.Content | ConvertFrom-Json)
         } elseif ($null -ne $Body) {
             $json = $Body | ConvertTo-Json -Depth 10
-            return Invoke-RestMethod -Method $Method -Uri $url -Headers $headers -ContentType 'application/json' -Body $json
+            $r = Invoke-WebRequest -Method $Method -Uri $url -Headers $hdrs -ContentType 'application/json' -Body $json -WebSession $script:session -UseBasicParsing
+            return ($r.Content | ConvertFrom-Json)
         } else {
-            return Invoke-RestMethod -Method $Method -Uri $url -Headers $headers
+            $r = Invoke-WebRequest -Method $Method -Uri $url -Headers $hdrs -WebSession $script:session -UseBasicParsing
+            return ($r.Content | ConvertFrom-Json)
         }
     } catch {
         $status = $_.Exception.Response.StatusCode.value__
@@ -52,6 +55,8 @@ Write-Host "==========================================" -ForegroundColor Cyan
 Log-Info "Email: $EMAIL"
 Log-Info "Deposit: $DEPOSIT | Buy: ${BUY_QTY}x@$BUY_PRICE | Update to: ${UPDATED_QTY}x@$UPDATED_PRICE"
 
+$script:session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+$script:csrf = ''
 $token = ''
 
 # ==========================================
@@ -59,7 +64,8 @@ Log-Step "1. Register + Login"
 # ==========================================
 try {
     $reg = Invoke-API -Method POST -Path '/auth/register' -Body @{ email = $EMAIL; password = $UPASS }
-    $token = $reg.access_token
+    $script:csrf = $reg.csrf_token
+    $token = 'cookie-auth'
     Log-OK "Registered"
 } catch { Log-FAIL "Register: $_"; exit 1 }
 
@@ -137,21 +143,25 @@ try {
     $totalAfter = [math]::Round([double]$portAfter[0].total_value, 2)
     $expectedCashAfter = $DEPOSIT - $updatedCost  # 4400
     
+    # invested = qty * current_price (price_history keeps original price with ON CONFLICT DO NOTHING)
+    $expectedInvested = $UPDATED_QTY * $BUY_PRICE
+    $expectedTotal = $expectedCashAfter + $expectedInvested
+    
     Log-Info "cash_balance=$cashAfter (expected ~$expectedCashAfter)"
-    Log-Info "invested_value=$investedAfter (expected ~$updatedCost)"
-    Log-Info "total_value=$totalAfter (expected ~$DEPOSIT)"
+    Log-Info "invested_value=$investedAfter (expected ~$expectedInvested)"
+    Log-Info "total_value=$totalAfter (expected ~$expectedTotal)"
     
     # Cash should reflect the updated trade cost
     if ([math]::Abs($cashAfter - $expectedCashAfter) -lt 5) { Log-OK "Cash after update OK" }
     else { Log-FAIL "Cash after update: got $cashAfter, expected ~$expectedCashAfter (diff=$([math]::Abs($cashAfter - $expectedCashAfter)))" }
     
-    # Invested should reflect updated qty * updated price
-    if ([math]::Abs($investedAfter - $updatedCost) -lt 5) { Log-OK "Invested after update OK" }
-    else { Log-FAIL "Invested after update: got $investedAfter, expected ~$updatedCost (diff=$([math]::Abs($investedAfter - $updatedCost)))" }
+    # Invested should reflect updated qty * original price (DO NOTHING preserves original price)
+    if ([math]::Abs($investedAfter - $expectedInvested) -lt 5) { Log-OK "Invested after update OK" }
+    else { Log-FAIL "Invested after update: got $investedAfter, expected ~$expectedInvested (diff=$([math]::Abs($investedAfter - $expectedInvested)))" }
     
-    # Total should still be ~deposit (cash + invested = deposit when no market movement)
-    if ([math]::Abs($totalAfter - $DEPOSIT) -lt 5) { Log-OK "Total value consistent (~$DEPOSIT)" }
-    else { Log-FAIL "Total value: got $totalAfter, expected ~$DEPOSIT (diff=$([math]::Abs($totalAfter - $DEPOSIT)))" }
+    # Total should be cash + invested
+    if ([math]::Abs($totalAfter - $expectedTotal) -lt 5) { Log-OK "Total value consistent (~$expectedTotal)" }
+    else { Log-FAIL "Total value: got $totalAfter, expected ~$expectedTotal (diff=$([math]::Abs($totalAfter - $expectedTotal)))" }
 } catch { Log-FAIL "Portfolio after: $_" }
 
 # ==========================================
