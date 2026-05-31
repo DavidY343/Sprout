@@ -44,8 +44,8 @@ export default function App() {
   }
 
   const handleTabChange = (tab: string) => {
+    if (tab === 'portfolio' && activeTab === 'portfolio') setPortfolioKey(k => k + 1)
     setActiveTab(tab)
-    if (tab === 'portfolio') setPortfolioKey(k => k + 1)
   }
 
   return (

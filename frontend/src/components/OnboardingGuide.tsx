@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { ChevronRight, ChevronLeft, X } from 'lucide-react'
 
 /* ── Types ──────────────────────────────────────────────── */
@@ -147,29 +147,41 @@ export default function OnboardingGuide({ onComplete, onNavigate, onSetView, onO
   const progress = ((step + 1) / STEPS.length) * 100
   const stepLabel = `${step + 1} / ${STEPS.length}`
 
+  // Stable refs for callbacks to avoid effect re-fires
+  const navRef = useRef(onNavigate)
+  const viewRef = useRef(onSetView)
+  const openRef = useRef(onOpenSettings)
+  const closeRef = useRef(onCloseSettings)
+  navRef.current = onNavigate
+  viewRef.current = onSetView
+  openRef.current = onOpenSettings
+  closeRef.current = onCloseSettings
+
   /* locate target element */
   const updateRect = useCallback(() => {
-    if (!current.target) { setRect(null); return }
-    const el = document.querySelector(current.target)
+    const s = STEPS[step]
+    if (!s.target) { setRect(null); return }
+    const el = document.querySelector(s.target)
     setRect(el ? el.getBoundingClientRect() : null)
-  }, [current.target])
+  }, [step])
 
   useEffect(() => {
+    const s = STEPS[step]
     // Close settings first if this step requires it
-    if (current.closeSettings) onCloseSettings()
+    if (s.closeSettings) closeRef.current()
+    // If no openSettings and no closeSettings, close settings
+    if (!s.openSettings && !s.closeSettings) closeRef.current()
     // Navigate to tab
-    if (current.navigateTo) onNavigate(current.navigateTo)
+    if (s.navigateTo) navRef.current(s.navigateTo)
     // Switch dashboard sub-view
-    if (current.dashboardView) onSetView(current.dashboardView)
+    if (s.dashboardView) viewRef.current(s.dashboardView)
     // Open settings to a specific section
-    if (current.openSettings) onOpenSettings(current.openSettings)
-    // If no openSettings and no closeSettings, close settings (for non-settings steps)
-    if (!current.openSettings && !current.closeSettings) onCloseSettings()
+    if (s.openSettings) openRef.current(s.openSettings)
 
-    const t = setTimeout(updateRect, 300)
+    const t = setTimeout(updateRect, 350)
     window.addEventListener('resize', updateRect)
     return () => { clearTimeout(t); window.removeEventListener('resize', updateRect) }
-  }, [step, current.navigateTo, current.dashboardView, current.openSettings, current.closeSettings, onNavigate, onSetView, onOpenSettings, onCloseSettings, updateRect])
+  }, [step, updateRect])
 
   const finish = () => { onCloseSettings(); onNavigate('portfolio'); onSetView('resumen'); onComplete() }
   const next = () => (isLast ? finish() : setStep(s => s + 1))
