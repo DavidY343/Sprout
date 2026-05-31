@@ -148,12 +148,12 @@ try {
 try {
     $r = Invoke-WebRequest -Uri "$BASE/trades/history" -Method GET `
         -WebSession $session -UseBasicParsing
-    $history = @($r.Content | ConvertFrom-Json)
-    if ($history.Count -eq 0) {
+    $parsed = $r.Content | ConvertFrom-Json
+    if ($null -eq $parsed -or @($parsed).Count -eq 0) {
         Log-OK "Trade removed from history"
     } else {
-        $found = @($history | Where-Object { $_.operation_id -eq $tradeId })
-        if ($found.Count -eq 0) { Log-OK "Trade removed from history" }
+        $found = @($parsed) | Where-Object { $_.operation_id -eq $tradeId }
+        if ($null -eq $found -or @($found).Count -eq 0) { Log-OK "Trade removed from history" }
         else { Log-FAIL "Trade still in history after delete" }
     }
 } catch {
