@@ -65,6 +65,7 @@ export default function HelpGuide({ activeTab, portfolioView }: HelpGuideProps) 
     <>
       {/* Botón flotante */}
       <button
+        data-tour="help-button"
         onClick={() => setOpen(true)}
         className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-[var(--accent-blue)] hover:bg-[#3D5F8F] text-white shadow-lg flex items-center justify-center transition cursor-pointer"
         aria-label="Ayuda"

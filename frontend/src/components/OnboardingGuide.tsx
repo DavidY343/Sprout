@@ -118,6 +118,14 @@ const STEPS: TourStep[] = [
     navigateTo: 'friends',
   },
 
+  // ── Help ──
+  {
+    target: '[data-tour="help-button"]',
+    title: '❓ Ayuda contextual',
+    body: 'En cualquier pantalla, pulsa este botón para ver una guía detallada de lo que puedes hacer en esa sección. Se adapta a la pestaña en la que estés.',
+    position: 'top',
+  },
+
   // ── Farewell ──
   {
     title: '¡Todo listo! 🚀',
@@ -158,7 +166,7 @@ export default function OnboardingGuide({ onComplete, onNavigate, onSetView, onO
     // If no openSettings and no closeSettings, close settings (for non-settings steps)
     if (!current.openSettings && !current.closeSettings) onCloseSettings()
 
-    const t = setTimeout(updateRect, 150)
+    const t = setTimeout(updateRect, 300)
     window.addEventListener('resize', updateRect)
     return () => { clearTimeout(t); window.removeEventListener('resize', updateRect) }
   }, [step, current.navigateTo, current.dashboardView, current.openSettings, current.closeSettings, onNavigate, onSetView, onOpenSettings, onCloseSettings, updateRect])
