@@ -67,7 +67,7 @@ export default function PortfolioPage() {
 
       <div className={layout.pageStack}>
         {/* ============ RESUMEN ============ */}
-        <div className={`${layout.pageStack} ${surface.heroPanel}`}>
+        <div data-tour="view-resumen" className={`${layout.pageStack} ${surface.heroPanel}`}>
           <div className={layout.gridKpi3}>
             <KPICard title="Total Portfolio" value={`€ ${totalPortfolio.toFixed(2)}`} icon={<Wallet className="w-8 h-8" />} />
             <KPICard title="Total Invertido" value={`€ ${totalInvested.toFixed(2)}`} icon={<TrendingUp className="w-8 h-8" />} />
@@ -97,7 +97,7 @@ export default function PortfolioPage() {
         </div>
 
         {/* ============ DISTRIBUCIÓN ============ */}
-        <div className={layout.grid2}>
+        <div data-tour="view-distribucion" className={layout.grid2}>
           {activeTab === 'global' && (
             <div className={surface.cardSm}>
               <div className="flex items-center justify-between mb-6">
@@ -122,7 +122,7 @@ export default function PortfolioPage() {
         </div>
 
         {/* ============ MAPA ============ */}
-        <div className={surface.card}>
+        <div data-tour="view-mapa" className={surface.card}>
           <div className="mb-6">
             <h2 className={text.sectionTitle}>Mapa de Activos</h2>
             <p className={text.sectionDesc}>Tamaño por valor total | Color por rendimiento</p>

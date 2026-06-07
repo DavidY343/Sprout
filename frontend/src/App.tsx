@@ -53,7 +53,7 @@ export default function App() {
     <div className={`${app.body} flex h-screen overflow-hidden`}>
       <Sidebar activeTab={activeTab} setActiveTab={handleTabChange} settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} settingsSection={settingsSection} />
       <main className={`${app.main} flex-1 overflow-y-auto ml-64 p-6`}>
-        {activeTab === 'portfolio' && <PortfolioPage key={portfolioKey} view={portfolioView} setView={setPortfolioView} />}
+        {activeTab === 'portfolio' && <PortfolioPage key={portfolioKey} />}
         {activeTab === 'trades' && <TradesPage />}
         {activeTab === 'transactions' && <TransactionPage />}
         {activeTab === 'friends' && <FriendsPage />}
