@@ -98,17 +98,15 @@ export default function PortfolioPage() {
 
         {/* ============ DISTRIBUCIÓN ============ */}
         <div data-tour="view-distribucion" className={layout.grid2}>
-          {activeTab === 'global' && (
-            <div className={surface.cardSm}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className={text.sectionTitle}>Distribución de cuentas</h2>
-              </div>
-              <div className="flex justify-center items-center">
-                <AccountsDonut accounts={accounts} selectedAccountId="all" />
-              </div>
+          <div className={surface.cardSm}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={text.sectionTitle}>{activeTab === 'global' ? 'Distribución de cuentas' : 'Distribución de cuenta'}</h2>
             </div>
-          )}
-          <div className={`${surface.cardSm} ${activeTab !== 'global' ? 'col-span-2' : ''}`}>
+            <div className="flex justify-center items-center">
+              <AccountsDonut accounts={accounts} selectedAccountId={activeTab === 'global' ? 'all' : activeTab} />
+            </div>
+          </div>
+          <div className={surface.cardSm}>
             <div className="flex items-center justify-between mb-6">
               <h2 className={text.sectionTitle}>Distribución de activos</h2>
               <div className="flex items-center gap-4">

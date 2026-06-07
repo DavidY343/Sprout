@@ -9,7 +9,7 @@ interface TourStep {
   navigateTo?: string    // tab id to switch to
   dashboardView?: string // portfolio sub-view to switch to
   position?: 'bottom' | 'top'
-  openSettings?: 'accounts' | 'assets' | 'friends' | 'preferences'
+  openSettings?: 'friends' | 'preferences'
   closeSettings?: boolean
 }
 
@@ -17,7 +17,7 @@ interface Props {
   onComplete: () => void
   onNavigate: (tab: string) => void
   onSetView: (view: string) => void
-  onOpenSettings: (section: 'accounts' | 'assets' | 'friends' | 'preferences') => void
+  onOpenSettings: (section: 'friends' | 'preferences') => void
   onCloseSettings: () => void
 }
 
@@ -28,23 +28,22 @@ const STEPS: TourStep[] = [
     body: 'Tu centro de control financiero personal. Te guiaremos paso a paso por toda la app para que no te pierdas nada.',
   },
 
-  // ── Settings ──
+  // ── Settings & Management ──
+  {
+    target: '[data-tour="tab-management"]',
+    title: '⚙️ Gestión',
+    body: 'Todo empieza aquí. Ve a Gestión para crear cuentas y añadir activos.',
+    closeSettings: true,
+  },
+  {
+    title: '🏦 Cuentas y 📋 Activos',
+    body: 'Dentro de Gestión podrás crear tus cuentas (Trade Republic, MyInvestor...) y añadir los activos que tienes en ellas usando su ticker de Yahoo Finance.',
+    navigateTo: 'management',
+  },
   {
     target: '[data-tour="settings"]',
-    title: '⚙️ Configuración',
-    body: 'Todo empieza aquí. Abre la configuración para crear cuentas, añadir activos, gestionar amigos y ajustar tus preferencias.',
-  },
-  {
-    target: '[data-tour="settings-accounts"]',
-    title: '🏦 Cuentas',
-    body: 'Crea tus cuentas de inversión: Trade Republic, MyInvestor, Degiro, IBKR… Cada cuenta tendrá su propio balance y seguimiento.',
-    openSettings: 'accounts',
-  },
-  {
-    target: '[data-tour="settings-assets"]',
-    title: '📋 Activos',
-    body: 'Añade los activos que tienes en cada cuenta usando su ticker de Yahoo Finance (ej: AAPL, VWCE.DE, AMP.MC). Sprout actualizará sus precios automáticamente.',
-    openSettings: 'assets',
+    title: '⚙️ Configuración y Amigos',
+    body: 'En la esquina inferior del menú encontrarás la Configuración. Ábrela para gestionar amigos y ajustar tus preferencias.',
   },
   {
     target: '[data-tour="settings-friends"]',

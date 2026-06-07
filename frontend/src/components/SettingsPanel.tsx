@@ -1,36 +1,23 @@
 import { useState, useEffect } from 'react';
-import { X, Building2, TrendingUp, Globe, Trash2, Users, UserPlus, Check, XCircle, BookOpen, Pencil } from 'lucide-react';
-import AccountCreationForm from './form/AccountCreationForm';
-import AssetCreationForm from './form/AssetCreationForm';
+import { X, Globe, Trash2, Users, UserPlus, Check, XCircle, BookOpen } from 'lucide-react';
 import { surface, text } from '../styles/theme';
-import { getAssetsWithPrices, AssetWithPrice, removeAsset, updateAsset } from '../services/assetService';
 import { getFriends, sendFriendRequest, acceptFriendRequest, removeFriend } from '../services/friendService';
 import { Friendship } from '../types/friendship';
-
-const TYPE_LABELS: Record<string, string> = {
-  etf: 'ETF', fund: 'Fondo', money_market: 'F. Monetario', stock: 'Acción', crypto: 'Crypto', bond: 'Bono', reit: 'REIT',
-};
 
 interface SettingsPanelProps {
   open: boolean;
   onClose: () => void;
-  externalSection?: 'accounts' | 'assets' | 'friends' | 'preferences';
+  externalSection?: 'friends' | 'preferences';
 }
 
 export default function SettingsPanel({ open, onClose, externalSection }: SettingsPanelProps) {
-  const [section, setSection] = useState<'accounts' | 'assets' | 'friends' | 'preferences'>('accounts');
-  const [userAssets, setUserAssets] = useState<AssetWithPrice[]>([]);
-  const [removing, setRemoving] = useState<number | null>(null);
-  const [editing, setEditing] = useState<number | null>(null);
-  const [editType, setEditType] = useState('');
-  const [editTheme, setEditTheme] = useState('');
+  const [section, setSection] = useState<'friends' | 'preferences'>('friends');
   const [friends, setFriends] = useState<Friendship[]>([]);
   const [friendEmail, setFriendEmail] = useState('');
   const [friendLoading, setFriendLoading] = useState(false);
   const [friendError, setFriendError] = useState('');
 
   useEffect(() => {
-    if (open && section === 'assets') loadAssets();
     if (open && section === 'friends') loadFriends();
   }, [open, section]);
 
@@ -70,25 +57,9 @@ export default function SettingsPanel({ open, onClose, externalSection }: Settin
     } catch { /* */ }
   };
 
-  const loadAssets = async () => {
-    try { setUserAssets(await getAssetsWithPrices()); } catch { /* */ }
-  };
-
-  const handleRemoveAsset = async (assetId: number, name: string) => {
-    if (!confirm(`¿Eliminar "${name}" y todas sus operaciones/transacciones? Esta acción no se puede deshacer.`)) return;
-    setRemoving(assetId);
-    try {
-      await removeAsset(assetId);
-      setUserAssets(prev => prev.filter(a => a.asset_id !== assetId));
-    } catch { /* */ }
-    finally { setRemoving(null); }
-  };
-
   if (!open) return null;
 
   const sections = [
-    { id: 'accounts' as const, label: 'Cuentas', icon: <Building2 className="w-4 h-4" /> },
-    { id: 'assets' as const, label: 'Activos', icon: <TrendingUp className="w-4 h-4" /> },
     { id: 'friends' as const, label: 'Amigos', icon: <Users className="w-4 h-4" /> },
     { id: 'preferences' as const, label: 'Preferencias', icon: <Globe className="w-4 h-4" /> },
   ];
@@ -132,108 +103,6 @@ export default function SettingsPanel({ open, onClose, externalSection }: Settin
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {section === 'accounts' && (
-            <div>
-              <div className="mb-4">
-                <h3 className={text.sectionTitle}>Cuentas de inversión</h3>
-                <p className={text.sectionDesc}>Añade tus brokers y cuentas (Trade Republic, MyInvestor, etc.)</p>
-              </div>
-              <AccountCreationForm />
-            </div>
-          )}
-
-          {section === 'assets' && (
-            <div className="space-y-6">
-              <div className="mb-4">
-                <h3 className={text.sectionTitle}>Activos</h3>
-                <p className={text.sectionDesc}>
-                  Añade activos con su ticker <strong>exacto de Yahoo Finance</strong>, incluyendo la extensión de la bolsa donde cotiza.
-                  Ejemplos: <code className="text-xs bg-[var(--bg-surface-hover)] px-1 py-0.5 rounded">NXT.MC</code> (Madrid),
-                  <code className="text-xs bg-[var(--bg-surface-hover)] px-1 py-0.5 rounded">VUSA.L</code> (Londres),
-                  <code className="text-xs bg-[var(--bg-surface-hover)] px-1 py-0.5 rounded">MSFT</code> (NASDAQ, sin extensión).
-                  El worker usa el ticker tal cual para traer precios automáticamente.
-                </p>
-              </div>
-              <AssetCreationForm onSuccess={() => loadAssets()} />
-
-              {/* User's assets list with edit/delete */}
-              {userAssets.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-2">Tus activos</h4>
-                  <div className="space-y-1">
-                    {userAssets.map(a => (
-                      <div key={a.asset_id} className="rounded-lg border border-[var(--border)] bg-[var(--bg-surface-alt)]">
-                        <div className="flex items-center justify-between px-3 py-2">
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium text-[var(--text-primary)]">{a.name}</span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-[var(--text-muted)] font-mono">{a.ticker || a.isin || '—'}</span>
-                              <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--bg-surface-hover)] text-[var(--text-secondary)]">{TYPE_LABELS[a.type] || a.type}</span>
-                              {a.theme && <span className="text-xs text-[var(--text-muted)]">{a.theme}</span>}
-                            </div>
-                          </div>
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() => { setEditing(editing === a.asset_id ? null : a.asset_id); setEditType(a.type); setEditTheme(a.theme || ''); }}
-                              className="p-1.5 rounded text-[var(--text-muted)] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/10 transition cursor-pointer"
-                              title="Editar tipo y temática"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleRemoveAsset(a.asset_id, a.name)}
-                              disabled={removing === a.asset_id}
-                              className="p-1.5 rounded text-[var(--text-muted)] hover:text-[var(--accent-red)] hover:bg-[var(--accent-red)]/10 transition cursor-pointer disabled:opacity-40"
-                              title="Eliminar activo y todas sus operaciones"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Inline edit panel */}
-                        {editing === a.asset_id && (
-                          <div className="px-3 pb-3 pt-1 border-t border-[var(--border)] flex gap-2 items-end">
-                            <div className="flex-1">
-                              <label className="text-xs text-[var(--text-muted)] mb-0.5 block">Tipo</label>
-                              <select value={editType} onChange={e => setEditType(e.target.value)}
-                                className="w-full bg-[var(--bg-surface)] border border-[var(--border-input)] rounded px-2 py-1.5 text-xs text-[var(--text-primary)]">
-                                <option value="etf">ETF</option>
-                                <option value="fund">Fondo indexado</option>
-                                <option value="money_market">Fondo monetario</option>
-                                <option value="stock">Acción</option>
-                                <option value="crypto">Crypto</option>
-                                <option value="bond">Bono</option>
-                                <option value="reit">REIT</option>
-                              </select>
-                            </div>
-                            <div className="flex-1">
-                              <label className="text-xs text-[var(--text-muted)] mb-0.5 block">Temática</label>
-                              <input type="text" value={editTheme} onChange={e => setEditTheme(e.target.value)}
-                                placeholder="Ej: Tecnología"
-                                className="w-full bg-[var(--bg-surface)] border border-[var(--border-input)] rounded px-2 py-1.5 text-xs text-[var(--text-primary)]" />
-                            </div>
-                            <button
-                              onClick={async () => {
-                                try {
-                                  await updateAsset(a.asset_id, { type: editType, theme: editTheme || undefined });
-                                  setUserAssets(prev => prev.map(x => x.asset_id === a.asset_id ? { ...x, type: editType, theme: editTheme || null } : x));
-                                  setEditing(null);
-                                } catch { /* */ }
-                              }}
-                              className="px-3 py-1.5 rounded bg-[var(--accent-blue)] text-white text-xs font-medium hover:opacity-90 transition cursor-pointer flex-shrink-0"
-                            >
-                              <Check className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
 
           {section === 'friends' && (
             <div className="space-y-6">

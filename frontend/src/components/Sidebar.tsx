@@ -10,7 +10,7 @@ interface Props {
   setActiveTab: (tab: string) => void;
   settingsOpen: boolean;
   setSettingsOpen: (open: boolean) => void;
-  settingsSection?: 'accounts' | 'assets' | 'friends' | 'preferences';
+  settingsSection?: 'friends' | 'preferences';
 }
 
 export default function Sidebar({ activeTab, setActiveTab, settingsOpen, setSettingsOpen, settingsSection }: Props) {
