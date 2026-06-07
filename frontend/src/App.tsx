@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import TopBar from './components/TopBar'
+import Sidebar from './components/Sidebar'
 import HelpGuide from './components/HelpGuide'
 import PortfolioPage from './pages/PortfolioPage'
 import TradesPage from './pages/TradesPage'
@@ -12,6 +12,7 @@ import { app } from './styles/theme'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('portfolio')
+  const [portfolioAccountId, setPortfolioAccountId] = useState<number | 'global'>('global')
   const [portfolioView, setPortfolioView] = useState('resumen')
   const [portfolioKey, setPortfolioKey] = useState(0)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -49,13 +50,14 @@ export default function App() {
   }
 
   return (
-    <div className={app.body}>
-      <TopBar activeTab={activeTab} setActiveTab={handleTabChange} settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} settingsSection={settingsSection} />
-      <main className={app.main}>
+    <div className={`${app.body} flex h-screen overflow-hidden`}>
+      <Sidebar activeTab={activeTab} setActiveTab={handleTabChange} settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} settingsSection={settingsSection} />
+      <main className={`${app.main} flex-1 overflow-y-auto ml-64 p-6`}>
         {activeTab === 'portfolio' && <PortfolioPage key={portfolioKey} view={portfolioView} setView={setPortfolioView} />}
         {activeTab === 'trades' && <TradesPage />}
         {activeTab === 'transactions' && <TransactionPage />}
         {activeTab === 'friends' && <FriendsPage />}
+        {activeTab === 'management' && <div className="p-8 text-[var(--text-primary)]"><h2 className="text-2xl font-bold">Página de Gestión</h2><p className="mt-4">Aquí se moverá la creación de cuentas y activos.</p></div>}
       </main>
       <HelpGuide activeTab={activeTab} portfolioView={portfolioView} />
       {showOnboarding && (
