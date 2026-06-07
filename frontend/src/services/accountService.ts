@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from './api'
+import { apiGet, apiPost, apiDelete, apiPatch } from './api'
 import { AccountWithBalance, Account, AccountCreate } from './../types/account'
 
 export async function getAccountsWithBalance(): Promise<AccountWithBalance[]> {
@@ -39,6 +39,24 @@ export async function getUserAccounts(): Promise<Account[]> {
         return data;
     } catch (error) {
         console.error('Error fetching user accounts:', error);
+        throw error;
+    }
+}
+
+export async function removeAccount(accountId: number): Promise<void> {
+    try {
+        await apiDelete(`/accounts/${accountId}`, true);
+    } catch (error) {
+        console.error('Error removing account:', error);
+        throw error;
+    }
+}
+
+export async function updateAccount(accountId: number, data: { name?: string; type?: string }): Promise<Account> {
+    try {
+        return await apiPatch<Account>(`/accounts/${accountId}`, data, true);
+    } catch (error) {
+        console.error('Error updating account:', error);
         throw error;
     }
 }

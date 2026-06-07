@@ -21,6 +21,10 @@ class AccountCreate(BaseModel):
             raise ValueError(f'Type must be one of: {", ".join(valid_types)}')
         return v.lower()
 
+class AccountUpdate(BaseModel):
+    name: Optional[str] = None
+    type: Optional[str] = None
+
 class AccountResponse(BaseModel):
     account_id: int
     user_id: int

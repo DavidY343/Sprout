@@ -20,19 +20,32 @@ export default function PortfolioPage() {
   const [metrics, setMetrics] = useState<PerformanceResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { loadAccounts() }, [])
+  useEffect(() => {
+    loadAccounts()
+  }, [])
+
+  useEffect(() => {
+    loadMetrics()
+  }, [activeTab])
 
   const loadAccounts = async () => {
     try {
       setLoading(true)
       const data = await getAccountsWithBalance()
       setAccounts(data)
-      const metricsData = await getPerformanceMetrics()
-      setMetrics(metricsData)
     } catch {
       setAccounts([])
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadMetrics = async () => {
+    try {
+      const metricsData = await getPerformanceMetrics(activeTab === 'global' ? 'all' : activeTab)
+      setMetrics(metricsData)
+    } catch {
+      setMetrics(null)
     }
   }
 
@@ -43,14 +56,10 @@ export default function PortfolioPage() {
   const totalInvested = filteredAccounts.reduce((s, a) => s + a.invested_value, 0)
   const totalCash = filteredAccounts.reduce((s, a) => s + a.cash_balance, 0)
   
-  // NOTE: Performance metrics in backend currently return global data. 
-  // If activeTab is not global, we show 0 or an indicator that it's not filtered, 
-  // until backend supports account_id filtering. For now we show global metrics if 'global' 
-  // and zeroed if specific account to avoid misleading data.
-  const monthlyPerformance = activeTab === 'global' ? metrics?.month?.pct || 0 : 0
-  const ytdPerformance = activeTab === 'global' ? metrics?.ytd?.pct || 0 : 0
-  const totalPerformance = activeTab === 'global' ? metrics?.total?.pct || 0 : 0
-  const threeMonthsPerformance = activeTab === 'global' ? metrics?.three_months?.pct || 0 : 0
+  const monthlyPerformance = metrics?.month?.pct || 0
+  const ytdPerformance = metrics?.ytd?.pct || 0
+  const totalPerformance = metrics?.total?.pct || 0
+  const threeMonthsPerformance = metrics?.three_months?.pct || 0
 
   if (loading) return <div className="p-12 text-center text-[var(--text-muted)] italic animate-pulse">Cargando dashboard...</div>
 
@@ -73,14 +82,12 @@ export default function PortfolioPage() {
             <KPICard title="Total Invertido" value={`€ ${totalInvested.toFixed(2)}`} icon={<TrendingUp className="w-8 h-8" />} />
             <KPICard title="Efectivo" value={`€ ${totalCash.toFixed(2)}`} icon={<PieChart className="w-8 h-8" />} />
           </div>
-          {activeTab === 'global' && (
-            <div className={layout.gridKpi4}>
-              <KPICard title="1 Mes" value={`${monthlyPerformance > 0 ? '+' : ''}${monthlyPerformance.toFixed(2)}%`} positive={monthlyPerformance > 0} />
-              <KPICard title="3 Meses" value={`${threeMonthsPerformance > 0 ? '+' : ''}${threeMonthsPerformance.toFixed(2)}%`} positive={threeMonthsPerformance > 0} />
-              <KPICard title="YTD" value={`${ytdPerformance > 0 ? '+' : ''}${ytdPerformance.toFixed(2)}%`} positive={ytdPerformance > 0} />
-              <KPICard title="Total" value={`${totalPerformance > 0 ? '+' : ''}${totalPerformance.toFixed(2)}%`} positive={totalPerformance > 0} />
-            </div>
-          )}
+          <div className={layout.gridKpi4}>
+            <KPICard title="1 Mes" value={`${monthlyPerformance > 0 ? '+' : ''}${monthlyPerformance.toFixed(2)}%`} positive={monthlyPerformance > 0} />
+            <KPICard title="3 Meses" value={`${threeMonthsPerformance > 0 ? '+' : ''}${threeMonthsPerformance.toFixed(2)}%`} positive={threeMonthsPerformance > 0} />
+            <KPICard title="YTD" value={`${ytdPerformance > 0 ? '+' : ''}${ytdPerformance.toFixed(2)}%`} positive={ytdPerformance > 0} />
+            <KPICard title="Total" value={`${totalPerformance > 0 ? '+' : ''}${totalPerformance.toFixed(2)}%`} positive={totalPerformance > 0} />
+          </div>
         </div>
 
         {/* History chart */}

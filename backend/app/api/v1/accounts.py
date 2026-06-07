@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user_id, get_db
 from app.services.account_service import create_account, get_user_accounts
-from app.schemas.account import AccountCreate, AccountResponse
+from app.schemas.account import AccountCreate, AccountResponse, AccountUpdate
+from sqlalchemy import text
 
 router = APIRouter()
 
@@ -30,3 +31,52 @@ async def get_user_all_accounts(user_id: int = Depends(get_current_user_id), db:
         return accounts
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.patch("/{account_id}", response_model=AccountResponse, summary="Update account details")
+async def update_account(account_id: int, update: AccountUpdate, user_id: int = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
+    """Update account details (name, type)."""
+    check = await db.execute(
+        text("SELECT 1 FROM accounts WHERE user_id = :uid AND account_id = :aid"),
+        {"uid": user_id, "aid": account_id}
+    )
+    if not check.fetchone():
+        raise HTTPException(status_code=404, detail="Account not found or not yours")
+
+    sets = []
+    params: dict = {"aid": account_id}
+    if update.name is not None:
+        sets.append("name = :name")
+        params["name"] = update.name
+    if update.type is not None:
+        sets.append("type = :type")
+        params["type"] = update.type
+    if not sets:
+        raise HTTPException(status_code=400, detail="Nothing to update")
+
+    await db.execute(text(f"UPDATE accounts SET {', '.join(sets)} WHERE account_id = :aid"), params)
+    await db.commit()
+
+    result = await db.execute(text("SELECT * FROM accounts WHERE account_id = :aid"), {"aid": account_id})
+    row = result.mappings().fetchone()
+    return dict(row)
+
+@router.delete("/{account_id}", summary="Delete an account and cascade delete operations and transactions")
+async def delete_account(account_id: int, user_id: int = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
+    """Delete an account completely including all associated transactions and operations."""
+    try:
+        check = await db.execute(
+            text("SELECT 1 FROM accounts WHERE user_id = :uid AND account_id = :aid"),
+            {"uid": user_id, "aid": account_id}
+        )
+        if not check.fetchone():
+            raise HTTPException(status_code=404, detail="Account not found or not yours")
+
+        # Cascade deletes
+        await db.execute(text("DELETE FROM transactions WHERE account_id = :aid"), {"aid": account_id})
+        await db.execute(text("DELETE FROM operations WHERE account_id = :aid"), {"aid": account_id})
+        await db.execute(text("DELETE FROM accounts WHERE account_id = :aid"), {"aid": account_id})
+        await db.commit()
+        return {"detail": "Account deleted successfully"}
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))

@@ -1,13 +1,16 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
-async def get_performance_metrics(db: AsyncSession, user_id: int):
-    query = text("""
+async def get_performance_metrics(db: AsyncSession, user_id: int, account_id: int | None = None):
+    account_filter = "AND a.account_id = :account_id" if account_id else ""
+    account_filter_2 = "AND account_id = :account_id" if account_id else ""
+    
+    query = text(f"""
     WITH RECURSIVE daily_series AS (
         SELECT MIN(date)::date AS day, NOW()::date AS last_day
         FROM transactions t
         JOIN accounts a ON t.account_id = a.account_id
-        WHERE a.user_id = :user_id AND t.is_active = TRUE
+        WHERE a.user_id = :user_id {account_filter} AND t.is_active = TRUE
         UNION ALL
         SELECT (day + interval '1 day')::date, last_day
         FROM daily_series
@@ -21,7 +24,7 @@ async def get_performance_metrics(db: AsyncSession, user_id: int):
                 OVER (PARTITION BY o.asset_id ORDER BY o.date::date) as qty
         FROM operations o
         JOIN accounts a ON o.account_id = a.account_id
-        WHERE a.user_id = :user_id
+        WHERE a.user_id = :user_id {account_filter}
         GROUP BY o.asset_id, o.date::date
     ),
     price_steps AS (
@@ -32,7 +35,7 @@ async def get_performance_metrics(db: AsyncSession, user_id: int):
         CROSS JOIN (
             SELECT DISTINCT asset_id FROM operations o 
             JOIN accounts a ON o.account_id = a.account_id 
-            WHERE a.user_id = :user_id
+            WHERE a.user_id = :user_id {account_filter}
         ) ast
         LEFT JOIN price_history ph ON ph.asset_id = ast.asset_id AND ph.date::date = d.day
     ),
@@ -66,7 +69,7 @@ async def get_performance_metrics(db: AsyncSession, user_id: int):
             SUM(SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE -t.amount END)) 
                 OVER (ORDER BY d.day) as efectivo_total
         FROM daily_series d
-        CROSS JOIN (SELECT account_id FROM accounts WHERE user_id = :user_id) a
+        CROSS JOIN (SELECT account_id FROM accounts WHERE user_id = :user_id {account_filter_2}) a
         LEFT JOIN transactions t ON d.day = t.date::date AND t.account_id = a.account_id AND t.is_active = TRUE
         GROUP BY d.day
     ),
@@ -94,7 +97,11 @@ async def get_performance_metrics(db: AsyncSession, user_id: int):
     LIMIT 1;
     """)
 
-    result = await db.execute(query, {"user_id": user_id})
+    params = {"user_id": user_id}
+    if account_id:
+        params["account_id"] = account_id
+
+    result = await db.execute(query, params)
     row = result.fetchone()
 
     if not row or row.current_val is None or row.current_cap is None:
