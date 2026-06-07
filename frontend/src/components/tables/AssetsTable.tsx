@@ -9,7 +9,11 @@ interface AssetWithExtras extends AssetTableRow {
   profit: number
 }
 
-export default function AssetsTable() {
+interface AssetsTableProps {
+  accountId?: number | 'all'
+}
+
+export default function AssetsTable({ accountId = 'all' }: AssetsTableProps) {
   const [assets, setAssets] = useState<AssetTableRow[]>([])
   const [loading, setLoading] = useState(true)
   const [sortField, setSortField] = useState<keyof AssetWithExtras>('total_value')
@@ -30,9 +34,11 @@ export default function AssetsTable() {
     }
   }
 
-  const totalPortfolioValue = assets.reduce((sum, asset) => sum + (asset.total_value || 0), 0)
+  const filteredAssets = accountId === 'all' ? assets : assets.filter(a => a.account_id === accountId)
+  
+  const totalPortfolioValue = filteredAssets.reduce((sum, asset) => sum + (asset.total_value || 0), 0)
 
-  const assetsWithExtras: AssetWithExtras[] = assets.map(asset => ({
+  const assetsWithExtras: AssetWithExtras[] = filteredAssets.map(asset => ({
     ...asset,
     weight: totalPortfolioValue > 0 ? (asset.total_value / totalPortfolioValue) * 100 : 0,
     profit: (asset.total_value || 0) - (asset.invested_value || 0)

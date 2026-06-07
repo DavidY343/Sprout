@@ -2,22 +2,27 @@ import { useEffect, useState } from 'react'
 import { getAllAssets } from '../services/assetService'
 import { AssetTableRow } from '../types/asset'
 
-export default function AssetsTreemapPremium() {
+interface AssetsTreemapProps {
+  accountId?: number | 'all'
+}
+
+export default function AssetsTreemapPremium({ accountId = 'all' }: AssetsTreemapProps) {
   const [assets, setAssets] = useState<AssetTableRow[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     getAllAssets()
       .then(data => {
-        const sorted = data
-          .filter(a => a.total_value > 0)
-          .sort((a, b) => b.total_value - a.total_value)
-
-        setAssets(sorted)
+        setAssets(data)
         setLoading(false)
       })
       .catch(() => setLoading(false))
   }, [])
+
+  const filteredAssets = accountId === 'all' ? assets : assets.filter(a => a.account_id === accountId)
+  const sortedAssets = filteredAssets
+    .filter(a => a.total_value > 0)
+    .sort((a, b) => b.total_value - a.total_value)
 
   if (loading)
     return (
@@ -26,7 +31,7 @@ export default function AssetsTreemapPremium() {
       </div>
     )
 
-  const totalValue = assets.reduce((sum, a) => sum + a.total_value, 0)
+  const totalValue = sortedAssets.reduce((sum, a) => sum + a.total_value, 0)
 
   // ====== BINARY TREEMAP INLINE ======
   type Node = {
@@ -80,7 +85,7 @@ export default function AssetsTreemapPremium() {
     }
   }
 
-  const nodes = binaryTreemap(assets, 0, 0, 100, 100)
+  const nodes = binaryTreemap(sortedAssets, 0, 0, 100, 100)
 
   return (
     <div className="w-full bg-[var(--bg-surface)] rounded-2xl border border-[var(--border)] overflow-hidden shadow-sm p-2">

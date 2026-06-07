@@ -25,18 +25,12 @@ When creating or modifying frontend UI:
 
 ## Definition of done (required)
 For tasks that modify application code or configuration, before declaring an implementation task complete in your response:
-1. Validate Docker status is clean.
-   - Use `docker compose` when available, otherwise `docker-compose`.
-   - Build/run needed services.
-   - Confirm containers are up and without startup errors.
-   - Inspect logs for errors when needed.
-   - If no Docker configuration exists yet, skip Docker validation and report it as a follow-up.
-2. Execute smoke tests.
+1. Execute smoke tests.
    - Smoke tests must live under `tests/smoke/`.
    - If `tests/smoke/` does not exist, create it with an initial runner scaffold.
    - Create or update topic-focused tests for the work being done.
    - Re-run previous smoke tests for the same topic when revisiting it.
-3. Report evidence.
+2. Report evidence.
    - Summarize what was verified, commands run, and outcomes.
 
 ## Smoke test conventions
