@@ -1,0 +1,54 @@
+name: Backfill Prices
+
+on:
+  workflow_dispatch:
+    inputs:
+      asset_id:
+        description: 'Asset ID to backfill (optional, leave blank for all active assets)'
+        required: false
+        type: string
+      ticker:
+        description: 'Ticker to backfill (optional, leave blank for all active assets)'
+        required: false
+        type: string
+      start_date:
+        description: 'Custom Start Date YYYY-MM-DD (optional)'
+        required: false
+        type: string
+      days:
+        description: 'Default days to backfill if no operations (optional)'
+        required: false
+        type: string
+        default: '365'
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r worker/requirements.txt
+
+      - name: Run backfill
+        run: |
+          CMD="python worker/backfill.py"
+          if [ -n "${{ github.event.inputs.asset_id }}" ]; then
+            CMD="$CMD --asset-id ${{ github.event.inputs.asset_id }}"
+          fi
+          if [ -n "${{ github.event.inputs.ticker }}" ]; then
+            CMD="$CMD --ticker ${{ github.event.inputs.ticker }}"
+          fi
+          if [ -n "${{ github.event.inputs.start_date }}" ]; then
+            CMD="$CMD --start-date ${{ github.event.inputs.start_date }}"
+          fi
+          if [ -n "${{ github.event.inputs.days }}" ]; then
+            CMD="$CMD --days ${{ github.event.inputs.days }}"
+          fi
+          eval $CMD
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
