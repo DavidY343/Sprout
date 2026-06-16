@@ -110,7 +110,7 @@ export const donut = {
   centerValue: 'text-2xl font-bold text-[var(--text-primary)]',
   centerLabel: 'text-sm text-[var(--text-muted)] mt-1',
   legendColumn: 'w-full lg:w-[40%]',
-  legendStack: 'space-y-3 w-full',
+  legendStack: 'space-y-3 w-full max-h-[256px] lg:max-h-[320px] overflow-y-auto pr-1',
   legendItem: 'group flex items-center justify-between p-4 rounded-lg bg-[var(--bg-surface-alt)] hover:bg-[var(--bg-surface-hover)] transition-colors cursor-pointer',
   legendLeft: 'flex items-center gap-3 flex-1 min-w-0',
   legendDot: 'w-4 h-4 rounded-full flex-shrink-0',

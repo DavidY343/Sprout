@@ -84,13 +84,6 @@ export default function AccountsDonut({
     }))
     .sort((a, b) => Number(b.value) - Number(a.value))
 
-  // Tomar solo los primeros 4 elementos para la leyenda
-  const visibleLegendItems = legendItems.slice(0, 4)
-  const hasMoreItems = legendItems.length > 4
-  const remainingItems = hasMoreItems ? legendItems.slice(4) : []
-  const remainingTotal = remainingItems.reduce((sum, item) => sum + Number(item.value), 0)
-  const remainingPercentage = total > 0 ? ((remainingTotal / total) * 100).toFixed(1) : '0.0'
-
   return (
     <div className={donut.shell}>
       {/* Gráfico Donut*/}
@@ -143,7 +136,7 @@ export default function AccountsDonut({
       {/* Leyenda*/}
       <div className={donut.legendColumn}>
         <div className={donut.legendStack}>
-          {visibleLegendItems.map((item, index) => (
+          {legendItems.map((item, index) => (
             <div 
               key={item.name} 
               className={donut.legendItem}
@@ -154,7 +147,10 @@ export default function AccountsDonut({
                   className={donut.legendDot}
                   style={{ backgroundColor: item.color }}
                 />
-                <span className="text-sm font-medium text-[var(--text-primary)] truncate">
+                <span 
+                  className="text-sm font-medium text-[var(--text-primary)] truncate" 
+                  title={item.name}
+                >
                   {item.name}
                 </span>
               </div>
@@ -170,29 +166,6 @@ export default function AccountsDonut({
               </div>
             </div>
           ))}
-          
-          {/* Elementos restantes agrupados */}
-          {hasMoreItems && (
-            <div className={donut.legendItem}>
-              {/* Izquierda: Color + Nombre */}
-              <div className={donut.legendLeft}>
-                <div className="w-4 h-4 rounded-full flex-shrink-0 bg-[var(--text-placeholder)]" />
-                <span className="text-sm font-medium text-[var(--text-secondary)] truncate">
-                  Otros ({remainingItems.length} categorías)
-                </span>
-              </div>
-              
-              {/* Derecha: Precio + Porcentaje */}
-              <div className={donut.legendRight}>
-                <span className="text-[var(--text-secondary)] font-semibold text-sm whitespace-nowrap">
-                  €{remainingTotal.toLocaleString('es-ES', { minimumFractionDigits: 0 })}
-                </span>
-                <span className="text-[var(--text-muted)] font-semibold text-sm whitespace-nowrap">
-                  {remainingPercentage}%
-                </span>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
