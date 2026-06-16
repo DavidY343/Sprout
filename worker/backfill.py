@@ -123,7 +123,7 @@ def backfill_prices(target_asset_id=None, target_ticker=None, custom_start_date=
         print(f"Se procesarán {len(assets)} activo(s).")
         
         for asset_id, ticker, isin, min_op_date in assets:
-            identifier = isin if isin else ticker
+            identifier = ticker if ticker else isin
             if not identifier:
                 continue
 
@@ -154,6 +154,7 @@ def backfill_prices(target_asset_id=None, target_ticker=None, custom_start_date=
 
                 print(f"  -> Recibidos {len(data)} registros de precios de cierre.")
                 
+                from datetime import timezone
                 records = []
                 for date_index, row in data.iterrows():
                     price_val = float(row['Close'])
@@ -161,6 +162,10 @@ def backfill_prices(target_asset_id=None, target_ticker=None, custom_start_date=
                         continue
                     
                     price_date = date_index.to_pydatetime()
+                    if price_date.tzinfo is None:
+                        price_date = price_date.replace(tzinfo=timezone.utc)
+                    else:
+                        price_date = price_date.astimezone(timezone.utc)
                     records.append((asset_id, price_date, price_val))
 
                 if records:
