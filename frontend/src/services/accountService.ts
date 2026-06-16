@@ -60,3 +60,21 @@ export async function updateAccount(accountId: number, data: { name?: string; ty
         throw error;
     }
 }
+
+export async function syncAccount(accountId: number): Promise<void> {
+    try {
+        await apiPost<any>(`/accounts/${accountId}/sync`, {}, true);
+    } catch (error) {
+        console.error('Error syncing account:', error);
+        throw error;
+    }
+}
+
+export async function syncAllAccounts(): Promise<void> {
+    try {
+        await apiPost<any>(`/accounts/sync-all`, {}, true);
+    } catch (error) {
+        console.error('Error syncing all accounts:', error);
+        throw error;
+    }
+}

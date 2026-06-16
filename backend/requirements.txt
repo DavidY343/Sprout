@@ -16,3 +16,6 @@ jinja2
 
 # Google OAuth (token verification via httpx)
 httpx
+
+yfinance
+pytz

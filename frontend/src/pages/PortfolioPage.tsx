@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import KPICard from '../components/KPICard'
-import { getAccountsWithBalance } from '../services/accountService'
+import { getAccountsWithBalance, syncAccount, syncAllAccounts } from '../services/accountService'
 import { AccountWithBalance } from '../types/account'
-import { PieChart, TrendingUp, Wallet } from 'lucide-react'
+import { PieChart, TrendingUp, Wallet, RefreshCw } from 'lucide-react'
 import AccountsDonut from '../components/donuts/AccountsDonut'
 import AssetsDonut from '../components/donuts/AssetsDonut'
 import GroupBySelector from '../components/selectors/GroupSelector'
@@ -19,6 +19,25 @@ export default function PortfolioPage() {
   const [groupBy, setGroupBy] = useState<'type' | 'theme' | 'asset'>('type')
   const [metrics, setMetrics] = useState<PerformanceResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [syncing, setSyncing] = useState(false)
+
+  const handleSync = async () => {
+    setSyncing(true)
+    try {
+      if (activeTab === 'global') {
+        await syncAllAccounts()
+        alert("Sincronización de toda la cartera iniciada en segundo plano. Los precios históricos de los activos se actualizarán en unos minutos.")
+      } else {
+        const accountName = accounts.find(a => a.account_id === activeTab)?.name || "la cuenta"
+        await syncAccount(activeTab)
+        alert(`Sincronización de "${accountName}" iniciada en segundo plano. Los precios históricos de los activos se actualizarán en unos minutos.`)
+      }
+    } catch {
+      alert("Error al iniciar la sincronización.")
+    } finally {
+      setSyncing(false)
+    }
+  }
 
   useEffect(() => {
     loadAccounts()
@@ -97,6 +116,15 @@ export default function PortfolioPage() {
               <h2 className={text.sectionTitle}>Evolución del Patrimonio</h2>
               <p className={text.sectionDesc}>Valor total de la cartera en el tiempo</p>
             </div>
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className={`${button.outline} flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md disabled:opacity-50`}
+              title="Sincronizar histórico de precios desde Yahoo Finance"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+              Sincronizar
+            </button>
           </div>
           <div className="h-80 w-full">
             <PortfolioHistoryChart accountId={activeTab === 'global' ? 'all' : activeTab} />

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Building2, TrendingUp, Check, Trash2, Pencil } from 'lucide-react';
+import { Building2, TrendingUp, Check, Trash2, Pencil, RefreshCw } from 'lucide-react';
 import AccountCreationForm from '../components/form/AccountCreationForm';
 import AssetCreationForm from '../components/form/AssetCreationForm';
 import { text, surface } from '../styles/theme';
 import { getAssetsWithPrices, AssetWithPrice, removeAsset, updateAsset } from '../services/assetService';
-import { getUserAccounts, removeAccount, updateAccount } from '../services/accountService';
+import { getUserAccounts, removeAccount, updateAccount, syncAccount } from '../services/accountService';
 import { Account } from '../types/account';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -18,6 +18,19 @@ export default function ManagementPage() {
   const [removing, setRemoving] = useState<number | null>(null);
   const [editingAsset, setEditingAsset] = useState<number | null>(null);
   const [editingAccount, setEditingAccount] = useState<number | null>(null);
+  const [syncing, setSyncing] = useState<number | null>(null);
+
+  const handleSyncAccount = async (accountId: number, name: string) => {
+    setSyncing(accountId);
+    try {
+      await syncAccount(accountId);
+      alert(`Sincronización iniciada para "${name}". Los precios históricos de sus activos se actualizarán en segundo plano.`);
+    } catch {
+      alert("Error al iniciar la sincronización de la cuenta.");
+    } finally {
+      setSyncing(null);
+    }
+  };
   
   // Asset edit state
   const [editType, setEditType] = useState('');
@@ -114,6 +127,14 @@ export default function ManagementPage() {
                           </div>
                         </div>
                         <div className="flex gap-2">
+                          <button
+                            onClick={() => handleSyncAccount(a.account_id, a.name)}
+                            disabled={syncing === a.account_id}
+                            className="p-2 rounded text-[var(--text-muted)] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/10 transition cursor-pointer disabled:opacity-40"
+                            title="Sincronizar e importar histórico de precios de Yahoo Finance"
+                          >
+                            <RefreshCw className={`w-4 h-4 ${syncing === a.account_id ? 'animate-spin' : ''}`} />
+                          </button>
                           <button
                             onClick={() => { setEditingAccount(editingAccount === a.account_id ? null : a.account_id); setEditAccountName(a.name); setEditAccountType(a.type); }}
                             className="p-2 rounded text-[var(--text-muted)] hover:text-[var(--accent-blue)] hover:bg-[var(--accent-blue)]/10 transition cursor-pointer"
