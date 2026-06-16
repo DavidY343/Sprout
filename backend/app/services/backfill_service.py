@@ -137,6 +137,14 @@ async def backfill_account_prices(account_id: int):
                 
             if assets_data:
                 await run_backfill_for_assets(db, assets_data)
+
+            # Invalidate cache for the account owner
+            acc_stmt = select(Account.user_id).where(Account.account_id == account_id)
+            acc_res = await db.execute(acc_stmt)
+            user_id = acc_res.scalar_one_or_none()
+            if user_id:
+                from app.core.cache import clear_user_cache
+                clear_user_cache(user_id)
     except Exception as e:
         print(f"Error en backfill_account_prices para account_id={account_id}: {e}")
         traceback.print_exc()
@@ -173,6 +181,9 @@ async def backfill_portfolio_prices(user_id: int):
                 
             if assets_data:
                 await run_backfill_for_assets(db, assets_data)
+
+            from app.core.cache import clear_user_cache
+            clear_user_cache(user_id)
     except Exception as e:
         print(f"Error en backfill_portfolio_prices para user_id={user_id}: {e}")
         traceback.print_exc()

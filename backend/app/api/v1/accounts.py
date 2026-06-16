@@ -18,6 +18,8 @@ async def create_new_account(account_data: AccountCreate, user_id: int = Depends
     """
     try:
         account = await create_account(db, account_data, user_id)
+        from app.core.cache import clear_user_cache
+        clear_user_cache(user_id)
         return account
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -56,6 +58,8 @@ async def update_account(account_id: int, update: AccountUpdate, user_id: int = 
 
     await db.execute(text(f"UPDATE accounts SET {', '.join(sets)} WHERE account_id = :aid"), params)
     await db.commit()
+    from app.core.cache import clear_user_cache
+    clear_user_cache(user_id)
 
     result = await db.execute(text("SELECT * FROM accounts WHERE account_id = :aid"), {"aid": account_id})
     row = result.mappings().fetchone()
@@ -77,6 +81,8 @@ async def delete_account(account_id: int, user_id: int = Depends(get_current_use
         await db.execute(text("DELETE FROM operations WHERE account_id = :aid"), {"aid": account_id})
         await db.execute(text("DELETE FROM accounts WHERE account_id = :aid"), {"aid": account_id})
         await db.commit()
+        from app.core.cache import clear_user_cache
+        clear_user_cache(user_id)
         return {"detail": "Account deleted successfully"}
     except Exception as e:
         await db.rollback()

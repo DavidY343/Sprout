@@ -41,6 +41,9 @@ async def create_new_operation(operation_data: OperationCreate, user_id: int = D
         
         # 4. Refresh después del commit
         await db.refresh(operation)
+
+        from app.core.cache import clear_user_cache
+        clear_user_cache(user_id)
         
         return operation
 
@@ -63,6 +66,8 @@ async def update_existing_operation(
         operation = await update_operation(db, operation_id, update_data, user_id)
         await db.commit()
         await db.refresh(operation)
+        from app.core.cache import clear_user_cache
+        clear_user_cache(user_id)
         return operation
     except ValueError as e:
         await db.rollback()
@@ -81,6 +86,8 @@ async def delete_existing_operation(
     try:
         await delete_operation(db, operation_id, user_id)
         await db.commit()
+        from app.core.cache import clear_user_cache
+        clear_user_cache(user_id)
     except ValueError as e:
         await db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
